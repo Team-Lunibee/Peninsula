@@ -12,6 +12,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
     private var pruneTimer: Timer?
     private var signalSources: [DispatchSourceSignal] = []
+    private var observers: [Task<Void, Never>] = []
     private var hasShutDown = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -50,10 +51,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if Preferences.shared.focusEnabled {
             focus.start()
         }
+        // Turning the feature on in settings has to start the monitor, or it
+        // stays off until the next launch — and the permission prompt with it.
+        observers.append(
+            observeChanges { _ = Preferences.shared.focusEnabled } onChange: { [weak self] in
+                guard let self else { return }
+                Preferences.shared.focusEnabled ? self.focus.start() : self.focus.stop()
+            }
+        )
         hud.start(model: controller.model)
 
         if Preferences.shared.mediaEnabled {
             media.start()
+        }
+        activities.onAirDropReceived = { [weak controller] urls in
+            controller?.receiveAirDrop(urls)
         }
         activities.start(model: controller.model)
 
@@ -94,6 +106,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard !hasShutDown else { return }
         hasShutDown = true
         pruneTimer?.invalidate()
+        observers.forEach { $0.cancel() }
+        observers.removeAll()
         activities.stop()
         bluetooth.stop()
         focus.stop()

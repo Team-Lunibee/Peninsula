@@ -351,8 +351,11 @@ struct SettingsView: View {
                     Text("계속 보관").tag(0)
                 }
                 .disabled(!preferences.shelfEnabled)
+
+                Toggle("AirDrop으로 받은 파일 선반에 담기", isOn: $preferences.airDropToShelf)
+                    .disabled(!preferences.shelfEnabled)
             } footer: {
-                Text("끌어다 놓은 파일은 Dynamic 전용 폴더로 복사됩니다. 원본을 옮기거나 지워도 선반은 그대로 유지됩니다.")
+                Text("끌어다 놓은 파일은 Dynamic 전용 폴더로 복사됩니다. 원본을 옮기거나 지워도 선반은 그대로 유지됩니다. AirDrop 수신은 macOS가 처리하며, 다운로드 폴더에 도착한 파일을 노치가 알려주고 선반에 함께 담아둡니다.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

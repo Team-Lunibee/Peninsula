@@ -126,6 +126,8 @@ final class Preferences {
     var lyricsEnabled: Bool { didSet { write(lyricsEnabled, .lyricsEnabled) } }
     var showLyrics: Bool { didSet { write(showLyrics, .showLyrics) } }
     var focusEnabled: Bool { didSet { write(focusEnabled, .focusEnabled) } }
+    var airDropToShelf: Bool { didSet { write(airDropToShelf, .airDropToShelf) } }
+    var hasAskedForFocus: Bool { didSet { write(hasAskedForFocus, .hasAskedForFocus) } }
 
     private init() {
         defaults.register(defaults: [
@@ -153,6 +155,8 @@ final class Preferences {
             Key.lyricsEnabled.rawValue: true,
             Key.showLyrics.rawValue: true,
             Key.focusEnabled.rawValue: true,
+            Key.airDropToShelf.rawValue: true,
+            Key.hasAskedForFocus.rawValue: false,
         ])
 
         heightMode = NotchHeightMode(rawValue: defaults.string(forKey: Key.heightMode.rawValue) ?? "")
@@ -184,6 +188,8 @@ final class Preferences {
         lyricsEnabled = defaults.bool(forKey: Key.lyricsEnabled.rawValue)
         showLyrics = defaults.bool(forKey: Key.showLyrics.rawValue)
         focusEnabled = defaults.bool(forKey: Key.focusEnabled.rawValue)
+        airDropToShelf = defaults.bool(forKey: Key.airDropToShelf.rawValue)
+        hasAskedForFocus = defaults.bool(forKey: Key.hasAskedForFocus.rawValue)
     }
 
     private enum Key: String {
@@ -194,6 +200,8 @@ final class Preferences {
         case powerActivitiesEnabled, fileActivitiesEnabled, deviceActivitiesEnabled
         case hudEnabled, lyricsEnabled, showLyrics, mediaIdleTimeout
         case focusEnabled
+        case airDropToShelf
+        case hasAskedForFocus
     }
 
     private func write(_ value: Any, _ key: Key) {

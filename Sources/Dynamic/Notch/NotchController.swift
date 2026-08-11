@@ -112,8 +112,9 @@ final class NotchController: NSObject {
         }
         hosting.hoverExtraBottom = { [weak self] in
             // None once open, or the panel would refuse to close until the
-            // pointer travelled well past its bottom edge.
-            self?.model.presentation.isResting == true ? NotchGeometry.restingHoverExtraBottom : 0
+            // pointer travelled well past its bottom edge. A banner still wants
+            // it: it is small, and it can be opened by moving onto it.
+            self?.model.presentation == .expanded ? 0 : NotchGeometry.restingHoverExtraBottom
         }
         hosting.onMouseEntered = { [weak self] in self?.pointerEntered() }
         hosting.onMouseExited = { [weak self] in self?.pointerExited() }
@@ -283,17 +284,22 @@ final class NotchController: NSObject {
     private func pointerEntered() {
         hoverTask?.cancel()
         guard preferences.openOnHover else { return }
-        guard model.presentation.isResting else { return }
-        guard restingTriggerRect.contains(NSEvent.mouseLocation) else { return }
+        guard model.presentation != .expanded else { return }
+        guard hoverTriggerRect.contains(NSEvent.mouseLocation) else { return }
 
         hoverTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(Preferences.shared.hoverDelay))
             guard !Task.isCancelled, let self else { return }
             // Re-check after the delay: the pointer may have moved on, and a
             // tracking-area exit is not guaranteed to have arrived first.
-            guard self.restingTriggerRect.contains(NSEvent.mouseLocation) else { return }
+            guard self.hoverTriggerRect.contains(NSEvent.mouseLocation) else { return }
             self.model.expand()
         }
+    }
+
+    /// Whichever rect the notch currently occupies and can be opened from.
+    private var hoverTriggerRect: CGRect {
+        model.presentation == .peek ? peekTriggerRect : restingTriggerRect
     }
 
     private func pointerExited() {
@@ -363,17 +369,45 @@ final class NotchController: NSObject {
 
     /// Single source of truth for hover, evaluated against live geometry.
     private func updateHover(at location: CGPoint) {
-        if model.presentation.isResting {
+        switch model.presentation {
+        case .idle, .compact:
             let inside = restingTriggerRect.contains(location)
             guard inside != isPointerInTrigger else { return }
             isPointerInTrigger = inside
             inside ? pointerEntered() : hoverTask?.cancel()
-        } else {
+
+        // A banner is a notification on a timer. The pointer did not put it
+        // there and must not take it away — this used to fall into the branch
+        // below, so nudging the mouse after pressing a volume key retracted the
+        // HUD instantly, which is the one moment the reading is being looked at.
+        //
+        // Moving *onto* it still opens the panel, because at that point the
+        // pointer is asking for something.
+        case .peek:
+            let inside = peekTriggerRect.contains(location)
+            guard inside != isPointerInTrigger else { return }
+            isPointerInTrigger = inside
+            inside ? pointerEntered() : hoverTask?.cancel()
+
+        case .expanded:
             isPointerInTrigger = false
             guard !openHoverRect.contains(location) else { return }
             hoverTask?.cancel()
             model.collapse()
         }
+    }
+
+    /// The banner's own rect, padded below like the resting one so the pointer
+    /// can arrive from the content area rather than only along the bezel.
+    private var peekTriggerRect: CGRect {
+        let size = model.size(for: .peek)
+        let closed = model.geometry.closedRect
+        return CGRect(
+            x: closed.midX - size.width / 2,
+            y: closed.maxY - size.height - NotchGeometry.restingHoverExtraBottom,
+            width: size.width,
+            height: size.height + NotchGeometry.restingHoverExtraBottom
+        )
     }
 
     /// While open, the pointer may roam the whole panel. The shadow margin is
@@ -458,6 +492,21 @@ final class NotchController: NSObject {
         model.cancelActivity()
         model.tab = .shelf
         model.expand()
+    }
+
+    /// Files that arrived over AirDrop, on their way to the shelf.
+    ///
+    /// Deliberately quieter than a drag-and-drop: the banner has already said
+    /// what happened, and throwing the panel open over whatever someone is
+    /// doing is not a reasonable response to another machine sending them a
+    /// file. It goes on the shelf and waits there.
+    func receiveAirDrop(_ urls: [URL]) {
+        var added = 0
+        withAnimation(Motion.open(preferences.motion)) {
+            added = shelf.add(contentsOf: urls)
+        }
+        guard added > 0 else { return }
+        model.tab = .shelf
     }
 
     func airDropShelf() {

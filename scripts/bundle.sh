@@ -7,7 +7,8 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CONFIG="${1:-release}"
-APP="$ROOT/build/Dynamic.app"
+NAME="Dynamic"
+APP="$ROOT/build/$NAME.app"
 ADAPTER="$ROOT/.build/mediaremote-adapter"
 
 if [ ! -d "$ADAPTER/MediaRemoteAdapter.framework" ]; then
@@ -71,5 +72,44 @@ codesign --force --sign "$IDENTITY" --timestamp=none \
 
 echo "==> Verifying"
 codesign --verify --deep --strict "$APP" && echo "    signature ok"
+
+# Install over the copy that is actually used.
+#
+# The login item registers a path, and macOS keys privacy grants to the bundle
+# at that path, so /Applications/Dynamic.app has to be the build you just made
+# — otherwise you spend an afternoon fixing something and keep running the
+# version from this morning. Replacing in place keeps the path, and the
+# signature is unchanged, so Accessibility and Focus survive.
+#
+# Set NO_INSTALL=1 to build without touching it.
+INSTALLED="/Applications/$NAME.app"
+if [ "${NO_INSTALL:-0}" = "1" ]; then
+    echo "==> Skipping install (NO_INSTALL=1)"
+elif [ ! -w /Applications ]; then
+    echo "    warning: /Applications is not writable — not installing" >&2
+else
+    echo "==> Installing to $INSTALLED"
+    WAS_RUNNING=0
+    if pgrep -f "$INSTALLED/Contents/MacOS/$NAME" >/dev/null 2>&1; then
+        WAS_RUNNING=1
+        # Terminate rather than kill: the app catches SIGTERM to reap the
+        # adapter's perl child, and SIGKILL would strand it.
+        pkill -f "$INSTALLED/Contents/MacOS/$NAME" 2>/dev/null || true
+        for _ in 1 2 3 4 5 6 7 8 9 10; do
+            pgrep -f "$INSTALLED/Contents/MacOS/$NAME" >/dev/null 2>&1 || break
+            sleep 0.3
+        done
+    fi
+
+    rm -rf "$INSTALLED"
+    # ditto, not cp: it preserves the extended attributes the signature covers.
+    ditto "$APP" "$INSTALLED"
+    codesign --verify --deep --strict "$INSTALLED" && echo "    installed and verified"
+
+    if [ "$WAS_RUNNING" = "1" ]; then
+        open "$INSTALLED"
+        echo "    relaunched"
+    fi
+fi
 
 echo "==> $APP"

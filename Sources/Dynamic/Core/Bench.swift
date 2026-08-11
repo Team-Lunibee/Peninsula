@@ -29,6 +29,8 @@ enum Bench {
         case "transitions": run(model: model, cycles: cycles, dwell: 0.9)
         case "tracks": runTrackStorm(model: model)
         case "settings": runSettingsCycle()
+        case "focus": runFocusProbe(model: model)
+        case "hud": runHUDProbe(model: model)
         // Held open against the pointer monitors, which would otherwise close
         // it the moment the cursor is anywhere else.
         case "hold":
@@ -122,6 +124,60 @@ enum Bench {
                 if index % 10 == 9 { note("bench: cycle \(index + 1)") }
             }
             note("bench: transitions end")
+        }
+    }
+
+    /// Puts a HUD banner up and then jogs the pointer, which used to retract it
+    /// instantly. The cursor is put back where it was found.
+    private static func runHUDProbe(model: NotchViewModel) {
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(3))
+            let origin = NSEvent.mouseLocation
+            note("hud: banner up, pointer at \(Int(origin.x)),\(Int(origin.y))")
+
+            model.presentLevel(HUDInfo(symbol: "speaker.wave.2.fill", value: 0.6, tint: .white))
+
+            guard let screen = NSScreen.main else { return }
+            let flipped = { (point: CGPoint) in
+                CGPoint(x: point.x, y: screen.frame.maxY - point.y)
+            }
+
+            for step in 0..<8 {
+                try? await Task.sleep(for: .milliseconds(150))
+                // Deliberately far from the notch: that is the movement that
+                // used to count as "the pointer left, close it".
+                let target = CGPoint(
+                    x: screen.frame.midX + CGFloat(step) * 12,
+                    y: screen.frame.midY
+                )
+                CGWarpMouseCursorPosition(flipped(target))
+                note("hud[\(step)] presentation=\(String(describing: model.presentation))")
+            }
+
+            CGWarpMouseCursorPosition(flipped(origin))
+            note("hud: pointer restored")
+        }
+    }
+
+    /// Reports what the system says about Focus, once a second.
+    ///
+    /// There are three separate switches between a Focus turning on and this
+    /// app knowing about it, and the failure looks identical from the outside
+    /// whichever one is off. This prints all three.
+    private static func runFocusProbe(model: NotchViewModel) {
+        Task { @MainActor in
+            let focus = model.focus
+            focus.start()
+            for tick in 0..<40 {
+                note(String(
+                    format: "focus[%02d] authorization=%@ isFocused=%@ raw=%@",
+                    tick,
+                    String(describing: focus.authorization),
+                    String(describing: focus.isFocused),
+                    String(describing: focus.rawSystemStatus)
+                ))
+                try? await Task.sleep(for: .seconds(1))
+            }
         }
     }
 

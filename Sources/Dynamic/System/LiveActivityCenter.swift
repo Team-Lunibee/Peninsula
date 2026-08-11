@@ -145,8 +145,63 @@ final class LiveActivityCenter {
     private func flushArrivals() {
         let arrivals = pendingArrivals
         pendingArrivals.removeAll()
-        guard let first = arrivals.first else { return }
+        guard !arrivals.isEmpty else { return }
 
+        // AirDrop first: it is a download as far as the folder is concerned,
+        // but it is not one as far as the person watching is concerned.
+        let airDropped = arrivals.filter { FileOrigin.of($0) == .airDrop }
+        if !airDropped.isEmpty {
+            announceAirDrop(airDropped)
+            let rest = arrivals.filter { !airDropped.contains($0) }
+            guard !rest.isEmpty else { return }
+            return announceDownload(rest)
+        }
+
+        announceDownload(arrivals)
+    }
+
+    /// Announces an AirDrop and, unless told otherwise, puts it on the shelf.
+    ///
+    /// Receiving is entirely macOS's affair — the file is already in Downloads
+    /// by the time anything here runs. What the island can add is the part that
+    /// is actually missing: knowing it arrived, and having it to hand instead of
+    /// going to find it.
+    private func announceAirDrop(_ urls: [URL]) {
+        guard let first = urls.first else { return }
+
+        model?.present(
+            .info(ActivityInfo(
+                symbol: "airplayaudio",
+                tint: .blue,
+                title: "AirDrop 받음",
+                subtitle: urls.count == 1
+                    ? first.lastPathComponent
+                    : "\(first.lastPathComponent) 외 \(urls.count - 1)개",
+                trailingValue: nil
+            )),
+            for: 3.0
+        )
+
+        guard preferences.shelfEnabled, preferences.airDropToShelf else { return }
+
+        Task { @MainActor [weak self] in
+            // The directory event fires when the entry appears, not when the
+            // transfer ends. Copying a half-arrived file would put a truncated
+            // one on the shelf permanently.
+            var settled: [URL] = []
+            for url in urls where await FileManager.default.waitUntilStable(url) {
+                settled.append(url)
+            }
+            guard !settled.isEmpty else { return }
+            self?.onAirDropReceived?(settled)
+        }
+    }
+
+    /// Wired to the controller, which owns the shelf.
+    var onAirDropReceived: (([URL]) -> Void)?
+
+    private func announceDownload(_ arrivals: [URL]) {
+        guard let first = arrivals.first else { return }
         let isScreenshot = arrivals.allSatisfy(Self.looksLikeScreenshot)
         let info = ActivityInfo(
             symbol: isScreenshot ? "camera.viewfinder" : "arrow.down.circle.fill",
