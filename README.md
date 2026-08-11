@@ -77,7 +77,7 @@ Apple이 WWDC23에서 정한 표기(`duration` + `bounce`)를 그대로 씁니�
 
 **기기** — 연결된 블루투스 기기 배터리. 에어팟은 좌/우/케이스를 따로 봅니다.
 
-**라이브 알림** — 충전 연결/완료/부족, 다운로드·스크린샷 완료, 기기 연결, 집중 모드 전환.
+**라이브 알림** — 충전 연결/완료/부족, 다운로드·스크린샷 완료, 기기 연결, AirDrop 수신.
 
 **HUD 대체** — 볼륨·밝기 키를 가로채 시스템 오버레이 대신 노치에 표시. 손쉬운 사용 권한이 필요하고, 권한을 준 순간 재실행 없이 스스로 켜집니다.
 
@@ -112,7 +112,7 @@ macOS에서 `TimelineView`가 `NSHostingView` 안에 있으면 `sizeThatFits()`�
 
 **④ 설정 창은 닫으면 놓아줍니다.** `isReleasedWhenClosed = false`에 static 참조까지 잡혀 있어서, 한 번 열면 SwiftUI 트리 전체가 세션 내내 남았습니다. 이 앱 상주 메모리의 대부분이 아무도 보지 않는 창이었습니다.
 
-**⑤ 집중 모드 권한 조회를 캐시합니다.** `INFocusStatusCenter.authorizationStatus`는 프로퍼티 읽기가 아니라 `tccd`로 가는 **동기 XPC 왕복 두 번**입니다. 8초마다, 그리고 앱을 전환할 때마다 메인 스레드를 막고 있었습니다.
+**⑤ 집중 모드는 뺐습니다.** `INFocusStatusCenter`가 macOS에서 신뢰할 수 없습니다 — `authorizationStatus`는 tccd가 `kTCCServiceFocusStatus`를 `authValue=2`(허용)로 기록한 순간에도 같은 프로세스 안에서 `.notDetermined`를 반환하고, `focusStatus.isFocused`는 집중 모드를 켜도 `false`에서 움직이지 않았습니다. 권한 요청은 프롬프트를 띄우지 않고, 앱이 LaunchServices로 실행된 게 아니면 **프로세스를 SIGABRT로 죽입니다**. 달 아이콘 하나를 위해 감당할 표면이 아니었습니다.
 
 ---
 
@@ -126,7 +126,7 @@ Sources/Dynamic/
   Notch/        패널·형태·기하·컨트롤러 (창 레이어 전부)
   Media/        MediaRemote 브리지, 재생 엔진, 가사, 아트워크, 시스템 볼륨
   Shelf/        선반 저장소, 드래그 감지, Quick Look
-  System/       전원·폴더·블루투스·집중 모드 관찰, HUD 탭, 밝기
+  System/       전원·폴더·블루투스 관찰, 파일 출처, HUD 탭, 밝기
   UI/           SwiftUI 뷰 전부
 ```
 
@@ -154,7 +154,7 @@ Sources/Dynamic/
 
 **재생 정보** — macOS 15.4부터 MediaRemote는 Apple 프로세스만 접근할 수 있습니다. [mediaremote-adapter](https://github.com/ungive/mediaremote-adapter)를 통해, 아직 권한이 남아 있는 시스템 perl 바이너리로 읽습니다. 이 경로가 막히면 조용히 멈추지 않고 노치에 그 사실을 표시합니다.
 
-**집중 모드는 읽기 전용입니다.** 켜고 끄는 공개 API가 없습니다. 상태가 보이려면 두 군데가 켜져 있어야 합니다 — 앱 권한(설정 › 기능 › 집중 모드)과 시스템 설정 › 집중 모드 › 집중 모드 상태.
+**AirDrop 수신은 macOS가 처리합니다.** 승인 대화상자도 진행률도 `sharingd`가 소유하고 있어서 끼어들 방법이 없습니다. 대신 도착을 감지합니다 — 받은 파일에는 `com.apple.quarantine`에 `sharingd`가 에이전트로 찍혀 있어서 같은 폴더의 다운로드와 구분됩니다. 전송이 시작되면 "받는 중", 파일 크기가 멈추면 "받음"으로 바뀌고 선반에 담깁니다.
 
 **미터는 장식입니다.** macOS는 다른 앱의 출력을 읽는 공개 API를 주지 않습니다. 재생 상태에 반응할 뿐 신호를 측정하지 않습니다.
 

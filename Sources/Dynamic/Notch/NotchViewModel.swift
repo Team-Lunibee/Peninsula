@@ -126,7 +126,6 @@ final class NotchViewModel {
     let media: MediaEngine
     let shelf: ShelfStore
     let bluetooth: BluetoothBattery
-    let focus: FocusMonitor
 
     /// Wired up by `NotchController`, which owns the panel and therefore the
     /// view AirDrop needs to anchor its sheet to.
@@ -146,14 +145,12 @@ final class NotchViewModel {
         geometry: NotchGeometry,
         media: MediaEngine,
         shelf: ShelfStore,
-        bluetooth: BluetoothBattery,
-        focus: FocusMonitor
+        bluetooth: BluetoothBattery
     ) {
         self.geometry = geometry
         self.media = media
         self.shelf = shelf
         self.bluetooth = bluetooth
-        self.focus = focus
     }
 
     // MARK: - Resting state
@@ -341,13 +338,6 @@ final class NotchViewModel {
     //
     // Both flags must be false whenever any participating state would fail to
     // render the element, or the geometry match has no partner to fly to.
-
-    /// Focus earns a permanent dot in the resting island: it changes what
-    /// the machine does with every notification, and not knowing it is on is
-    /// how people miss things for an afternoon.
-    var showsFocusIndicator: Bool {
-        Preferences.shared.focusEnabled && focus.isAuthorized && focus.isFocused
-    }
 
     /// Off, and deliberately.
     ///

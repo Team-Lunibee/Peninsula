@@ -66,7 +66,6 @@ enum SettingsWindow {
 struct SettingsView: View {
     @State private var preferences = Preferences.shared
     @State private var hud = HUDController.shared
-    @State private var focus = (NSApp.delegate as? AppDelegate)?.focusMonitor
     @State private var launchesAtLogin = LoginItem.isEnabled
     @State private var loginItemError: String?
 
@@ -295,41 +294,6 @@ struct SettingsView: View {
                 Text("재생 중")
             } footer: {
                 Text("미터는 Core Animation으로 그려서 프레임 보간을 렌더 서버가 맡습니다. 앱은 0.33초마다 다음 목표값만 정하고, 화면이 꺼지면 완전히 멈춥니다. 유휴 CPU 0.1% 실측입니다.\n\n가사는 lrclib.net에서 가져옵니다. 곡 제목·아티스트·앨범·재생 시간이 그 서버로 전송되며, 계정이나 키는 필요 없습니다. 원하지 않으면 꺼 두세요.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            Section {
-                Toggle("집중 모드 표시", isOn: $preferences.focusEnabled)
-
-                if preferences.focusEnabled, let focus {
-                    LabeledContent("상태") {
-                        Text(focus.statusDescription)
-                            .foregroundStyle(focus.isAuthorized ? Color.secondary : Color.orange)
-                            .font(.caption)
-                            .multilineTextAlignment(.trailing)
-                    }
-
-                    if !focus.isAuthorized {
-                        HStack {
-                            Button("권한 요청") { focus.requestAuthorization() }
-                            Button("시스템 설정 열기") {
-                                NSWorkspace.shared.open(URL(
-                                    string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Focus"
-                                )!)
-                            }
-                            // The answer is cached, and the user is on their way
-                            // to change it. Drop the cache now so coming back
-                            // shows the new state rather than the old one.
-                            Button("다시 확인") { focus.invalidateAuthorizationCache() }
-                        }
-                        .controlSize(.small)
-                    }
-                }
-            } header: {
-                Text("집중 모드")
-            } footer: {
-                Text("집중 모드가 켜지거나 꺼지면 노치가 알려주고, 켜져 있는 동안 달 아이콘이 남습니다. 읽기만 합니다 — 켜고 끄는 공개 API가 없어서, 억지로 하려면 시스템 설정을 직접 건드려야 하고 그건 macOS 업데이트 한 번에 깨집니다.\n\n두 군데가 모두 켜져 있어야 동작합니다. 하나는 위의 ‘권한 요청’이고, 다른 하나는 시스템 설정 › 집중 모드 › 집중 모드 상태 — 이게 꺼져 있으면 어떤 앱도 상태를 받지 못합니다.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

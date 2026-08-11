@@ -7,7 +7,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let activities = LiveActivityCenter()
     private let bluetooth = BluetoothBattery()
     private let hud = HUDController.shared
-    private let focus = FocusMonitor()
     private var controller: NotchController?
     private var statusItem: NSStatusItem?
     private var pruneTimer: Timer?
@@ -17,7 +16,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let controller = NotchController(
-            media: media, shelf: shelf, bluetooth: bluetooth, focus: focus
+            media: media, shelf: shelf, bluetooth: bluetooth
         )
         controller.start()
         self.controller = controller
@@ -34,31 +33,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         bluetooth.start()
 
-        focus.onChange = { [weak controller] isFocused in
-            guard Preferences.shared.focusEnabled, let controller else { return }
-            controller.model.present(
-                .info(ActivityInfo(
-                    symbol: isFocused ? "moon.fill" : "moon.zzz",
-                    tint: isFocused ? .purple : .white,
-                    title: isFocused ? "집중 모드 켜짐" : "집중 모드 꺼짐",
-                    subtitle: nil,
-                    trailingValue: nil
-                )),
-                for: 1.8
-            )
-        }
-
-        if Preferences.shared.focusEnabled {
-            focus.start()
-        }
-        // Turning the feature on in settings has to start the monitor, or it
-        // stays off until the next launch — and the permission prompt with it.
-        observers.append(
-            observeChanges { _ = Preferences.shared.focusEnabled } onChange: { [weak self] in
-                guard let self else { return }
-                Preferences.shared.focusEnabled ? self.focus.start() : self.focus.stop()
-            }
-        )
         hud.start(model: controller.model)
 
         if Preferences.shared.mediaEnabled {
@@ -110,7 +84,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         observers.removeAll()
         activities.stop()
         bluetooth.stop()
-        focus.stop()
         hud.stop()
         media.stop()
         controller?.stop()
@@ -206,8 +179,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         hud.preferencesChanged()
     }
-
-    var focusMonitor: FocusMonitor { focus }
 
     @objc private func quit() {
         NSApp.terminate(nil)

@@ -29,8 +29,30 @@ enum Bench {
         case "transitions": run(model: model, cycles: cycles, dwell: 0.9)
         case "tracks": runTrackStorm(model: model)
         case "settings": runSettingsCycle()
-        case "focus": runFocusProbe(model: model)
         case "hud": runHUDProbe(model: model)
+        case "hover":
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(3))
+                guard let screen = NSScreen.main else { return }
+                let origin = NSEvent.mouseLocation
+                let flip = { (p: CGPoint) in CGPoint(x: p.x, y: screen.frame.maxY - p.y) }
+
+                // Onto the notch.
+                CGWarpMouseCursorPosition(flip(CGPoint(x: screen.frame.midX, y: screen.frame.maxY - 12)))
+                for tick in 0..<10 {
+                    try? await Task.sleep(for: .milliseconds(120))
+                    note("hover-in[\(tick)] \(String(describing: model.presentation)) at \(Int(NSEvent.mouseLocation.x)),\(Int(NSEvent.mouseLocation.y))")
+                }
+
+                // Away again.
+                CGWarpMouseCursorPosition(flip(CGPoint(x: screen.frame.midX, y: screen.frame.midY)))
+                for tick in 0..<10 {
+                    try? await Task.sleep(for: .milliseconds(120))
+                    note("hover-out[\(tick)] \(String(describing: model.presentation))")
+                }
+                CGWarpMouseCursorPosition(flip(origin))
+                note("hover: pointer restored")
+            }
         // Held open against the pointer monitors, which would otherwise close
         // it the moment the cursor is anywhere else.
         case "hold":
@@ -156,29 +178,6 @@ enum Bench {
 
             CGWarpMouseCursorPosition(flipped(origin))
             note("hud: pointer restored")
-        }
-    }
-
-    /// Reports what the system says about Focus, once a second.
-    ///
-    /// There are three separate switches between a Focus turning on and this
-    /// app knowing about it, and the failure looks identical from the outside
-    /// whichever one is off. This prints all three.
-    private static func runFocusProbe(model: NotchViewModel) {
-        Task { @MainActor in
-            let focus = model.focus
-            focus.start()
-            let ticks = ProcessInfo.processInfo.environment["DYNAMIC_BENCH_TICKS"].flatMap(Int.init) ?? 40
-            for tick in 0..<ticks {
-                note(String(
-                    format: "focus[%02d] authorization=%@ isFocused=%@ raw=%@",
-                    tick,
-                    String(describing: focus.authorization),
-                    String(describing: focus.isFocused),
-                    String(describing: focus.rawSystemStatus)
-                ))
-                try? await Task.sleep(for: .seconds(1))
-            }
         }
     }
 

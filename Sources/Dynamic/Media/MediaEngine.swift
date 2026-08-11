@@ -105,6 +105,16 @@ final class MediaEngine {
             return
         }
 
+        // A stopped player still streams.
+        //
+        // The adapter keeps sending while nothing is playing — the same payload,
+        // over and over — and every one of them used to run this whole function:
+        // rebuild the snapshot, re-fingerprint the artwork, re-publish an
+        // observable property that had not changed, and wake every SwiftUI view
+        // reading it. Measured at half a percent of a core with the notch empty
+        // and no music on. An identical snapshot has nothing to say.
+        guard snapshot != nowPlaying else { return }
+
         let previous = nowPlaying
         nowPlaying = snapshot
 
@@ -174,14 +184,31 @@ final class MediaEngine {
         lyrics.reset()
     }
 
+    /// Cached because the lookup is three trips to Launch Services and the disk
+    /// for an answer that cannot change while the app is running, and because a
+    /// player that flickers in and out of "nothing playing" asks for the same
+    /// one repeatedly.
+    private var sourceCache: [String: (icon: NSImage?, name: String?)] = [:]
+
     private func updateSource(bundleIdentifier: String) {
+        if let cached = sourceCache[bundleIdentifier] {
+            sourceIcon = cached.icon
+            sourceName = cached.name
+            return
+        }
+
         guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleIdentifier) else {
+            sourceCache[bundleIdentifier] = (nil, nil)
             sourceIcon = nil
             sourceName = nil
             return
         }
-        sourceIcon = NSWorkspace.shared.icon(forFile: url.path)
-        sourceName = FileManager.default.displayName(atPath: url.path)
+
+        let icon = NSWorkspace.shared.icon(forFile: url.path)
+        let name = FileManager.default.displayName(atPath: url.path)
+        sourceCache[bundleIdentifier] = (icon, name)
+        sourceIcon = icon
+        sourceName = name
     }
 
     private func loadArtwork(fingerprint: String?, base64: String?) {

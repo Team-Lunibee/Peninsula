@@ -318,12 +318,6 @@ private struct CompactContentView: View {
         switch Preferences.shared.idleStyle {
         case .miniMedia:
             HStack(spacing: 7) {
-                if model.showsFocusIndicator {
-                    Image(systemName: "moon.fill")
-                        .font(.system(size: 9))
-                        .foregroundStyle(.purple)
-                        .transition(.blurFade(radius: 4))
-                }
                 if Preferences.shared.visualizerEnabled {
                     SpectrumView(
                         isActive: model.media.isPlaying,
@@ -629,17 +623,6 @@ private struct ExpandedContentView: View {
                     .frame(width: 26, height: 26)
                     .help(lyricsHelp)
                     .transition(.blurFade(radius: 4))
-                }
-
-                // Read-only, so an indicator rather than a control. A button
-                // that cannot act is worse than no button.
-                if Preferences.shared.focusEnabled, model.focus.isFocused {
-                    Image(systemName: "moon.fill")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(.purple)
-                        .frame(width: 20, height: 26)
-                        .help("집중 모드 켜짐")
-                        .transition(.blurFade(radius: 4))
                 }
 
                 NotchButton(action: { model.onOpenSettings?() }) {

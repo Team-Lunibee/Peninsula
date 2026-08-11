@@ -4,15 +4,20 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>ko</string>
+	<key>CFBundleDisplayName</key>
+	<string>Dynamic</string>
 	<key>CFBundleExecutable</key>
 	<string>Dynamic</string>
 	<key>CFBundleIdentifier</key>
 	<string>dev.anbam.Dynamic</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>ko</string>
+		<string>en</string>
+	</array>
 	<key>CFBundleName</key>
-	<string>Dynamic</string>
-	<key>CFBundleDisplayName</key>
 	<string>Dynamic</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
@@ -22,26 +27,19 @@
 	<string>1</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>14.0</string>
-	<key>CFBundleLocalizations</key>
-	<array>
-		<string>ko</string>
-		<string>en</string>
-	</array>
 	<key>LSUIElement</key>
 	<true/>
-	<key>NSHighResolutionCapable</key>
-	<true/>
-	<key>NSSupportsAutomaticTermination</key>
-	<false/>
-	<key>NSSupportsSuddenTermination</key>
-	<false/>
-	<key>NSFocusStatusUsageDescription</key>
-	<string>집중 모드가 켜져 있는지 노치에 표시하기 위해 사용합니다.</string>
 	<key>NSAppleEventsUsageDescription</key>
 	<string>노치에서 음악과 Spotify 재생을 제어하기 위해 사용합니다.</string>
 	<key>NSDesktopFolderUsageDescription</key>
 	<string>노치에 끌어다 놓은 파일을 Dynamic 선반 폴더에 보관하기 위해 사용합니다.</string>
 	<key>NSDownloadsFolderUsageDescription</key>
 	<string>노치에 끌어다 놓은 파일을 Dynamic 선반 폴더에 보관하기 위해 사용합니다.</string>
+	<key>NSHighResolutionCapable</key>
+	<true/>
+	<key>NSSupportsAutomaticTermination</key>
+	<false/>
+	<key>NSSupportsSuddenTermination</key>
+	<false/>
 </dict>
 </plist>
