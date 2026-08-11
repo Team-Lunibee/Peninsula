@@ -186,12 +186,18 @@ struct NotchRootView: View {
 
     /// Where a state's contents come from and go back to: the resting pill,
     /// expressed as a fraction of that state's own size.
-    private func origin(for presentation: NotchPresentation) -> CGSize {
+    ///
+    /// The tighter of the two axes, so the contents start inside the pill on
+    /// both rather than overflowing one of them.
+    private func origin(for presentation: NotchPresentation) -> CGFloat {
         let resting = model.size(for: model.restingPresentation)
         let target = model.size(for: presentation)
-        return CGSize(
-            width: min(1, resting.width / max(target.width, 1)),
-            height: min(1, resting.height / max(target.height, 1))
+        return min(
+            1,
+            min(
+                resting.width / max(target.width, 1),
+                resting.height / max(target.height, 1)
+            )
         )
     }
 

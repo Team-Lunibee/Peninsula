@@ -168,13 +168,24 @@ final class FocusMonitor {
     private func refresh() {
         refreshAuthorizationIfStale()
 
-        guard isAuthorized else {
+        // Trust the answer, not the label.
+        //
+        // `authorizationStatus` reports `.notDetermined` on macOS even when the
+        // grant exists. Checked against tccd's own log at the moment of the
+        // call: `service=kTCCServiceFocusStatus` comes back `authValue=2` —
+        // allowed — for this bundle, while the framework in the same process
+        // says nobody has ever asked. Gating on that label is why the indicator
+        // never lit: the permission was there and this code refused to look.
+        //
+        // What *is* reliable is whether a status comes back at all. `nil` means
+        // the system will not say — no grant, or Focus status sharing switched
+        // off system-wide — and anything else is the truth.
+        guard let focused = INFocusStatusCenter.default.focusStatus.isFocused else {
             isFocused = false
             hasReadOnce = false
             return
         }
 
-        let focused = INFocusStatusCenter.default.focusStatus.isFocused ?? false
         let isFirstRead = !hasReadOnce
         hasReadOnce = true
 

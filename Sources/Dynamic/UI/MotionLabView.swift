@@ -296,9 +296,14 @@ struct MotionLabView: View {
         }
         .frame(width: target.width, height: target.height, alignment: .top)
         .clipShape(NotchShape(topRadius: radii(of: phase).top, bottomRadius: radii(of: phase).bottom))
+        // Uniform, matching the app: independent axes stretch the contents
+        // whenever the container's proportions differ from theirs, which is most
+        // of a transition.
         .scaleEffect(
-            x: containerSize.width / max(target.width, 1),
-            y: containerSize.height / max(target.height, 1),
+            min(
+                containerSize.width / max(target.width, 1),
+                containerSize.height / max(target.height, 1)
+            ),
             anchor: .top
         )
     }
