@@ -100,9 +100,10 @@ struct NotchRootView: View {
                 .shadow(color: .black.opacity(shadowOpacity), radius: shadowRadius, y: 7)
                 .modifier(sizing)
 
+            // No sizing modifier and no clip out here: each presentation's
+            // contents carry their own, in their own coordinate space. See
+            // `scaled(_:_:)`.
             content
-                .modifier(sizing)
-                .clipShape(deformed)
 
             // A sibling layer carrying the same sizing modifier, not an overlay
             // on the stack. As an overlay it sat outside the sizing — and so
@@ -147,14 +148,21 @@ struct NotchRootView: View {
         model.isOpen ? 18 : 10
     }
 
-    /// Content lays out at the container's *current* size, not its final one.
+    /// Content is laid out once, at the size of the state it belongs to, and
+    /// then *scaled* to whatever the container is at this instant.
     ///
-    /// Pinning it to the final size and letting the clip reveal it seems
-    /// tempting, but a 560pt-wide layout inside a 250pt-wide container shows
-    /// its middle slice first — you get the centre of the title, and the
-    /// artwork on the far left only arrives at the end. Flowing with the
-    /// container keeps everything anchored where it belongs, and the elements
-    /// that actually matter travel via `matchedGeometryEffect` instead.
+    /// This is how the real island does it, and it is measurable. Tracking the
+    /// artwork's left inset through a reference expansion frame by frame: at
+    /// 85.5% of final width the inset is 55px, at 94.5% it is 61px, at 98.6% it
+    /// is 64px — against a final 65px. A fixed margin would hold at 65
+    /// throughout; those are 55.6, 61.4 and 64.1 for a margin scaling with the
+    /// container. It scales.
+    ///
+    /// Laying out at the container's *current* size instead — which is what
+    /// this used to do — re-flows everything on every frame: a 624pt layout
+    /// crushed into a 384pt-wide, 101pt-tall box puts rows on top of each other
+    /// and pushes elements past the silhouette's rounded corners. Nothing is
+    /// where it will end up, so nothing reads as travelling there.
     @ViewBuilder
     private var content: some View {
         switch model.presentation {
@@ -163,17 +171,52 @@ struct NotchRootView: View {
             // cutout has nothing in it.
             Color.clear
         case .compact:
-            CompactContentView(model: model, morph: morph)
+            scaled(.compact) { CompactContentView(model: model, morph: morph) }
                 // Barely any blur: a 19pt thumbnail defocused hard just looks
                 // like a smudge.
-                .transition(.island(blur: 7, scale: 0.9))
+                .transition(.island(blur: 7, origin: origin(for: .compact)))
         case .peek:
-            PeekContentView(model: model, morph: morph)
-                .transition(.island(blur: 11, scale: 0.94))
+            scaled(.peek) { PeekContentView(model: model, morph: morph) }
+                .transition(.island(blur: 11, origin: origin(for: .peek)))
         case .expanded:
-            ExpandedContentView(model: model, morph: morph)
-                .transition(.island(blur: 15, scale: 0.955))
+            scaled(.expanded) { ExpandedContentView(model: model, morph: morph) }
+                .transition(.island(blur: 15, origin: origin(for: .expanded)))
         }
+    }
+
+    /// Where a state's contents come from and go back to: the resting pill,
+    /// expressed as a fraction of that state's own size.
+    private func origin(for presentation: NotchPresentation) -> CGSize {
+        let resting = model.size(for: model.restingPresentation)
+        let target = model.size(for: presentation)
+        return CGSize(
+            width: min(1, resting.width / max(target.width, 1)),
+            height: min(1, resting.height / max(target.height, 1))
+        )
+    }
+
+    /// Lays a presentation's contents out at their own size and clips them to
+    /// their own silhouette. The scale onto the container comes from the
+    /// transition — see `AnyTransition.island(blur:origin:)`.
+    private func scaled<V: View>(
+        _ presentation: NotchPresentation,
+        @ViewBuilder _ body: () -> V
+    ) -> some View {
+        let target = model.size(for: presentation)
+        let radii = model.cornerRadii(for: presentation)
+
+        return body()
+            .frame(width: max(target.width, 1), height: max(target.height, 1), alignment: .top)
+            // Clipped here, in the content's own coordinate space, where the
+            // silhouette is a constant. An outer clip sizes itself from layout,
+            // and layout resolves to the *destination* size while the shape
+            // behind is still travelling — so the contents hang out of the
+            // bottom of a panel that has not grown into them yet.
+            .clipShape(NotchShape(
+                topRadius: radii.top,
+                bottomRadius: radii.bottom,
+                style: model.geometry.style
+            ))
     }
 
     private func handleDrop(_ providers: [NSItemProvider]) -> Bool {

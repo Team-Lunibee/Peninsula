@@ -99,7 +99,16 @@ struct MotionLabView: View {
             preview
                 .frame(maxWidth: .infinity)
                 .frame(height: 210)
-                .background(Color.black)
+                // Not black. The island *is* black, and drawing it on black
+                // leaves nothing to look at but a hairline rim — which is
+                // exactly what this tab exists to show.
+                .background(
+                    LinearGradient(
+                        colors: [Color(white: 0.34), Color(white: 0.19)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
 
             Divider()
 
@@ -218,8 +227,13 @@ struct MotionLabView: View {
                         shape.stroke(.white.opacity(0.18), lineWidth: 0.75 / scale)
                     }
                     .frame(width: max(size.width, 1), height: max(size.height, 1))
+                    // Clipped to the silhouette, not to its bounding box. A rect
+                    // clip lets defocused content spill past the rounded corners,
+                    // where it sits outside the black shape entirely.
                     .overlay(alignment: .top) {
                         islandContent(containerSize: size)
+                            .frame(width: max(size.width, 1), height: max(size.height, 1))
+                            .clipShape(shape)
                     }
                     .overlay(alignment: .top) {
                         if showsCutout {
@@ -268,12 +282,41 @@ struct MotionLabView: View {
         )
     }
 
+    /// Laid out at the size the state belongs to and scaled to the container,
+    /// exactly as `NotchRootView` does it.
     @ViewBuilder
     private func islandPhase(_ phase: IslandPhase, containerSize: CGSize) -> some View {
+        let target = size(of: phase)
+        Group {
+            switch phase {
+            case .compact: MotionLabCompact(width: target.width, gap: Self.cutoutWidth)
+            case .peek: MotionLabPeek(width: target.width, gap: Self.cutoutWidth)
+            case .expanded: MotionLabExpanded(width: target.width, gap: Self.cutoutWidth)
+            }
+        }
+        .frame(width: target.width, height: target.height, alignment: .top)
+        .clipShape(NotchShape(topRadius: radii(of: phase).top, bottomRadius: radii(of: phase).bottom))
+        .scaleEffect(
+            x: containerSize.width / max(target.width, 1),
+            y: containerSize.height / max(target.height, 1),
+            anchor: .top
+        )
+    }
+
+    private func radii(of phase: IslandPhase) -> (top: CGFloat, bottom: CGFloat) {
         switch phase {
-        case .compact: MotionLabCompact(width: containerSize.width, gap: Self.cutoutWidth)
-        case .peek: MotionLabPeek(width: containerSize.width, gap: Self.cutoutWidth)
-        case .expanded: MotionLabExpanded(width: containerSize.width, gap: Self.cutoutWidth)
+        case .compact: NotchShape.closedRadii
+        case .peek: (top: 8, bottom: 18)
+        case .expanded: NotchShape.expandedRadii
+        }
+    }
+
+    private func size(of phase: IslandPhase) -> CGSize {
+        let closed = CGSize(width: 189, height: 32)
+        switch phase {
+        case .compact: return CGSize(width: closed.width + 64, height: closed.height)
+        case .peek: return CGSize(width: closed.width + 250, height: 46)
+        case .expanded: return CGSize(width: 624, height: NotchGeometry.expandedHeight)
         }
     }
 

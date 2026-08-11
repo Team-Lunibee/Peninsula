@@ -36,6 +36,18 @@ struct IslandBlurModifier: ViewModifier {
     }
 }
 
+/// One axis of scale, so each can be handed the spring that drives the
+/// container on that axis.
+struct IslandAxisScaleModifier: ViewModifier {
+    var x: CGFloat
+    var y: CGFloat
+    var anchor: UnitPoint
+
+    func body(content: Content) -> some View {
+        content.scaleEffect(x: x, y: y, anchor: anchor)
+    }
+}
+
 extension AnyTransition {
     /// The house transition.
     ///
@@ -54,10 +66,26 @@ extension AnyTransition {
     ///   than arriving: the panel travels hundreds of points while its contents
     ///   simply fade in at their final positions. Starting them inboard and
     ///   letting them settle outward ties the two together.
+    /// - Parameter origin: the scale the contents come *from*, as a fraction of
+    ///   their own size on each axis — normally the resting pill's size over
+    ///   this state's size.
+    ///
+    ///   This is the part that makes a morph read as one object growing. The
+    ///   contents are laid out once at their final size and this scales them
+    ///   onto the container, on the container's own two springs, so a title
+    ///   sits at the same fraction across the panel at every frame instead of
+    ///   being re-flowed into whatever box exists right now.
+    ///
+    ///   It has to live in the transition rather than in an `.animation(_:
+    ///   value:)` on the view. The container's size changes in the *same*
+    ///   transaction that inserts the contents, and a view that did not exist a
+    ///   frame ago has no previous value to animate from — so an animation
+    ///   attached that way silently does nothing and the contents appear at
+    ///   full size inside a pill.
     @MainActor
     static func island(
         blur: CGFloat = 10,
-        scale: CGFloat = 0.94,
+        origin: CGSize = CGSize(width: 0.94, height: 0.94),
         anchor: UnitPoint = .top,
         spread: CGFloat = 0
     ) -> AnyTransition {
@@ -69,7 +97,7 @@ extension AnyTransition {
         let absent = IslandContentModifier(
             blurRadius: 0,
             opacity: 0,
-            scale: reduced ? 1 : scale,
+            scale: 1,
             anchor: anchor,
             spread: reduced ? 0 : spread
         )
@@ -103,7 +131,33 @@ extension AnyTransition {
                 .animation(Motion.contentDefocus(preset))
         )
 
-        return fade.combined(with: focus)
+        // One transition per axis, so each can carry the spring that moves the
+        // container on that axis. Combined into one they would share a single
+        // animation, and closing — where the width comes home in under half the
+        // time the height takes — would visibly drift apart from the shape.
+        let identityScale = IslandAxisScaleModifier(x: 1, y: 1, anchor: anchor)
+        let horizontal = AnyTransition.asymmetric(
+            insertion: .modifier(
+                active: IslandAxisScaleModifier(x: origin.width, y: 1, anchor: anchor),
+                identity: identityScale
+            ).animation(Motion.width(preset, opening: true)),
+            removal: .modifier(
+                active: IslandAxisScaleModifier(x: origin.width, y: 1, anchor: anchor),
+                identity: identityScale
+            ).animation(Motion.width(preset, opening: false))
+        )
+        let vertical = AnyTransition.asymmetric(
+            insertion: .modifier(
+                active: IslandAxisScaleModifier(x: 1, y: origin.height, anchor: anchor),
+                identity: identityScale
+            ).animation(Motion.height(preset, opening: true)),
+            removal: .modifier(
+                active: IslandAxisScaleModifier(x: 1, y: origin.height, anchor: anchor),
+                identity: identityScale
+            ).animation(Motion.height(preset, opening: false))
+        )
+
+        return fade.combined(with: focus).combined(with: horizontal).combined(with: vertical)
     }
 
     /// Plain blur-and-fade for elements that swap in place inside an already

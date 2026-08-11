@@ -128,7 +128,7 @@ enum Motion {
                 // and an empty box is the one thing the island never shows.
                 contentLead: spring.duration * 0.08,
                 entranceDuration: spring.duration * 0.85,
-                exitDuration: spring.duration * 0.16
+                exitDuration: spring.duration * 0.55
             )
         }
 
@@ -145,9 +145,15 @@ enum Motion {
             heightBounce: spring.bounce * 1.4,
             contentLead: 0,
             entranceDuration: spring.duration * 0.5,
-            // Contents defocus almost immediately — in the reference they are
-            // unreadable within two frames of the collapse starting.
-            exitDuration: spring.duration * 0.16
+            // Outgoing contents *linger*, defocused.
+            //
+            // The defocus is what removes them — it lands within two frames —
+            // but the fade behind it is slow: measured, the reference still
+            // carries a visible smear of the artwork a sixth of a second into
+            // the collapse. Fading as fast as the blur arrives empties the box
+            // while it is still large, and an empty box shrinking is a window
+            // closing, not an island retracting.
+            exitDuration: spring.duration * 0.55
         )
     }
 
@@ -191,10 +197,9 @@ enum Motion {
     /// Content leaving, ahead of the container closing over the space it
     /// occupied.
     static func contentExit(_ preset: MotionPreset) -> Animation {
-        // `easeIn`, to match `exitOpacity`. Measured, the contents barely fade
-        // at first — the defocus does the work of removing them, and the fade
-        // catches up.
-        .easeIn(duration: timeline(preset, opening: false).exitDuration)
+        // `easeOut`, matching `exitOpacity`: most of the fade happens early,
+        // and the last of it tails off under the blur.
+        .easeOut(duration: timeline(preset, opening: false).exitDuration)
     }
 
     /// Defocus runs on its own clock, later and shorter than the fade.
@@ -343,7 +348,7 @@ enum Motion {
     static func exitOpacity(_ line: Timeline, at time: Double) -> Double {
         guard line.exitDuration > 0 else { return time > 0 ? 0 : 1 }
         let progress = min(1, max(0, time / line.exitDuration))
-        return 1 - UnitCurve.easeIn.value(at: progress)
+        return 1 - UnitCurve.easeOut.value(at: progress)
     }
 
     /// Opacity of the content arriving.

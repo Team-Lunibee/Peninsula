@@ -257,6 +257,12 @@ final class NotchViewModel {
     }
 
     var cornerRadii: (top: CGFloat, bottom: CGFloat) {
+        cornerRadii(for: presentation)
+    }
+
+    /// Radii of a *specific* state, so contents can be clipped to the silhouette
+    /// they will end up inside rather than to the one currently on screen.
+    func cornerRadii(for presentation: NotchPresentation) -> (top: CGFloat, bottom: CGFloat) {
         switch geometry.style {
         case .cutout:
             switch presentation {
@@ -268,7 +274,7 @@ final class NotchViewModel {
             // A pill at rest, a sheet when open. Both corners animate together
             // since the shape has no concave half to keep separate.
             let radius: CGFloat = switch presentation {
-            case .idle, .compact: contentSize.height / 2
+            case .idle, .compact: size(for: presentation).height / 2
             case .peek: 20
             case .expanded: 26
             }
@@ -343,19 +349,22 @@ final class NotchViewModel {
         Preferences.shared.focusEnabled && focus.isAuthorized && focus.isFocused
     }
 
-    var morphsArtwork: Bool {
-        preferences.mediaEnabled
-            && preferences.idleStyle == .miniMedia
-            && tab == .media
-            && media.artwork != nil
-    }
-
-    var morphsSpectrum: Bool {
-        preferences.mediaEnabled
-            && preferences.idleStyle == .miniMedia
-            && preferences.visualizerEnabled
-            && tab == .media
-    }
+    /// Off, and deliberately.
+    ///
+    /// Matching the artwork and the meter between states was an attempt to make
+    /// them *travel* rather than cross-fade. The contents now scale with the
+    /// container, which produces the same thing for free and for the same
+    /// reason the real island gets it for free: the two layouts are
+    /// proportionally alike. The compact thumbnail sits 10pt into a 253pt pill
+    /// and the expanded artwork 28pt into a 624pt sheet — 4.0% against 4.5% —
+    /// so scaling one onto the other lands them within a couple of points of
+    /// each other the whole way across.
+    ///
+    /// Keeping the geometry match on top of that would be two systems fighting
+    /// for the same frames, and the match wins by overriding position inside a
+    /// coordinate space the scale has already changed.
+    var morphsArtwork: Bool { false }
+    var morphsSpectrum: Bool { false }
 
     var isOpen: Bool { presentation == .expanded }
 
