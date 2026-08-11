@@ -169,31 +169,48 @@ final class LiveActivityCenter {
     private func announceAirDrop(_ urls: [URL]) {
         guard let first = urls.first else { return }
 
+        let label = urls.count == 1
+            ? first.lastPathComponent
+            : "\(first.lastPathComponent) 외 \(urls.count - 1)개"
+
+        // The directory entry appears when the transfer *starts*, so this is
+        // genuinely "receiving", not "received". Saying so is the whole value
+        // the island can add here — macOS's own AirDrop UI is a notification
+        // that has already scrolled away by the time a large file lands.
         model?.present(
             .info(ActivityInfo(
-                symbol: "airplayaudio",
+                symbol: "arrow.down.circle.dotted",
                 tint: .blue,
-                title: "AirDrop 받음",
-                subtitle: urls.count == 1
-                    ? first.lastPathComponent
-                    : "\(first.lastPathComponent) 외 \(urls.count - 1)개",
+                title: "AirDrop 받는 중",
+                subtitle: label,
                 trailingValue: nil
             )),
-            for: 3.0
+            for: 30
         )
 
-        guard preferences.shelfEnabled, preferences.airDropToShelf else { return }
-
         Task { @MainActor [weak self] in
-            // The directory event fires when the entry appears, not when the
-            // transfer ends. Copying a half-arrived file would put a truncated
-            // one on the shelf permanently.
             var settled: [URL] = []
             for url in urls where await FileManager.default.waitUntilStable(url) {
                 settled.append(url)
             }
+
+            // Same banner, updated in place rather than staged behind the first
+            // one — `present` absorbs an activity of the same kind.
+            self?.model?.present(
+                .info(ActivityInfo(
+                    symbol: "airplayaudio",
+                    tint: .blue,
+                    title: settled.isEmpty ? "AirDrop 전송 중단됨" : "AirDrop 받음",
+                    subtitle: label,
+                    trailingValue: nil
+                )),
+                for: 3.0
+            )
+
             guard !settled.isEmpty else { return }
-            self?.onAirDropReceived?(settled)
+            guard let self, self.preferences.shelfEnabled, self.preferences.airDropToShelf
+            else { return }
+            self.onAirDropReceived?(settled)
         }
     }
 

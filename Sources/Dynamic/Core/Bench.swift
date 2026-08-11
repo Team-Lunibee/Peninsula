@@ -168,7 +168,8 @@ enum Bench {
         Task { @MainActor in
             let focus = model.focus
             focus.start()
-            for tick in 0..<40 {
+            let ticks = ProcessInfo.processInfo.environment["DYNAMIC_BENCH_TICKS"].flatMap(Int.init) ?? 40
+            for tick in 0..<ticks {
                 note(String(
                     format: "focus[%02d] authorization=%@ isFocused=%@ raw=%@",
                     tick,

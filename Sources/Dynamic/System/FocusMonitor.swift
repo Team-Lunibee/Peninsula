@@ -20,19 +20,26 @@ final class FocusMonitor {
     private(set) var isFocused = false
     private(set) var authorization: INFocusStatusAuthorizationStatus = .notDetermined
 
-    var isAuthorized: Bool { authorization == .authorized }
+    /// Whether macOS is answering at all.
+    ///
+    /// This, not `authorization`, is what the rest of the app should ask. The
+    /// authorization enum is unreliable on macOS — see `refresh()` — while a
+    /// non-nil status is proof the system is willing to tell us.
+    private(set) var isAvailable = false
+
+    var isAuthorized: Bool { isAvailable }
 
     /// What the system currently says, in words, so the settings window can be
     /// specific instead of just failing to light up.
     var statusDescription: String {
-        switch authorization {
-        case .notDetermined: "아직 권한을 요청하지 않았습니다."
-        case .restricted: "이 기기의 정책이 집중 모드 상태 접근을 막고 있습니다."
-        case .denied: "거부됨 — 시스템 설정 › 개인정보 보호 및 보안 › 집중 모드에서 Dynamic을 켜 주세요."
-        case .authorized:
-            isFocused ? "집중 모드가 켜져 있습니다." : "허용됨 — 지금은 집중 모드가 꺼져 있습니다."
-        @unknown default: "알 수 없는 상태입니다."
+        guard isAvailable else {
+            return """
+            macOS가 집중 모드 상태를 알려주지 않고 있습니다. \
+            시스템 설정 › 개인정보 보호 및 보안 › 집중 모드에서 Dynamic을 켜 주세요. \
+            목록에 없다면 아래 ‘권한 요청’을 누르세요.
+            """
         }
+        return isFocused ? "집중 모드가 켜져 있습니다." : "꺼져 있습니다. 켜면 노치에 표시됩니다."
     }
 
     /// Called when Focus turns on or off — never for the initial read.
@@ -181,10 +188,12 @@ final class FocusMonitor {
         // the system will not say — no grant, or Focus status sharing switched
         // off system-wide — and anything else is the truth.
         guard let focused = INFocusStatusCenter.default.focusStatus.isFocused else {
+            isAvailable = false
             isFocused = false
             hasReadOnce = false
             return
         }
+        isAvailable = true
 
         let isFirstRead = !hasReadOnce
         hasReadOnce = true
