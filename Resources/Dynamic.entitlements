@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- The media bridge spawns /usr/bin/perl and the shelf copies files the
+	     user chooses from anywhere on disk, so the app deliberately runs
+	     unsandboxed. Everything else is kept to the minimum that works. -->
+	<key>com.apple.security.app-sandbox</key>
+	<false/>
+
+	<!-- Marking a track as a favourite is done with AppleScript, because the
+	     MediaRemote adapter has no command for it. -->
+	<key>com.apple.security.automation.apple-events</key>
+	<true/>
+</dict>
+</plist>
