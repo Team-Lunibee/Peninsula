@@ -41,13 +41,23 @@ final class FocusMonitor {
     private var timer: Timer?
     private var activationObserver: NSObjectProtocol?
     private var hasReadOnce = false
+    private var authorizationReadAt: Date?
 
-    /// Focus changes are not observable, so this polls. The read is an
-    /// in-process property — no subprocess, no file access, no drawing — so the
-    /// interval is about responsiveness rather than cost. Returning to any app
-    /// also forces a read, which covers the common case: toggle Focus in
-    /// Control Centre, go back to work.
+    /// Focus changes are not observable, so this polls. Reading the *status* is
+    /// an in-process property, so the interval is about responsiveness rather
+    /// than cost. Returning to any app also forces a read, which covers the
+    /// common case: toggle Focus in Control Centre, go back to work.
     private static let interval: TimeInterval = 8
+
+    /// How long a cached authorization answer is trusted.
+    ///
+    /// `INFocusStatusCenter.authorizationStatus` is not a property read: it
+    /// makes two *synchronous* XPC round trips to `tccd`, and it was doing so
+    /// on every poll and every app switch — measured at 0.4% of the main
+    /// thread, permanently, blocking it each time. The value only changes when
+    /// the user visits System Settings, so re-reading it on this cadence
+    /// notices a grant within a minute while costing effectively nothing.
+    private static let authorizationLifetime: TimeInterval = 60
 
     func start() {
         refresh()
@@ -68,6 +78,13 @@ final class FocusMonitor {
         }
     }
 
+    /// Forces the next read to go back to TCC. Called when the user has just
+    /// been sent to System Settings, where the answer is about to change.
+    func invalidateAuthorizationCache() {
+        authorizationReadAt = nil
+        refresh()
+    }
+
     func stop() {
         timer?.invalidate()
         timer = nil
@@ -80,14 +97,25 @@ final class FocusMonitor {
     func requestAuthorization() {
         INFocusStatusCenter.default.requestAuthorization { [weak self] status in
             Task { @MainActor in
-                self?.authorization = status
-                self?.refresh()
+                guard let self else { return }
+                self.authorization = status
+                self.authorizationReadAt = Date()
+                self.refresh()
             }
         }
     }
 
-    private func refresh() {
+    private func refreshAuthorizationIfStale() {
+        if let authorizationReadAt,
+           Date().timeIntervalSince(authorizationReadAt) < Self.authorizationLifetime {
+            return
+        }
         authorization = INFocusStatusCenter.default.authorizationStatus
+        authorizationReadAt = Date()
+    }
+
+    private func refresh() {
+        refreshAuthorizationIfStale()
 
         guard isAuthorized else {
             isFocused = false

@@ -194,8 +194,22 @@ struct MediaPanelView: View {
 
             Spacer(minLength: 12)
 
-            RoutePickerButton(tint: .white.opacity(0.9))
-                .frame(width: 28, height: 28)
+            // Mounted only once the panel has landed.
+            //
+            // `AVRoutePickerView` is an AppKit view, and SwiftUI has to hand any
+            // AppKit view it hosts new geometry through `-[NSView setFrame…]` on
+            // every animation frame, which dirties Auto Layout and the window's
+            // tracking areas all the way up. Keeping it out of the resize is
+            // worth a point of CPU, and it costs a 100ms-late fade on a glyph
+            // nobody is looking at while the panel is still moving.
+            ZStack {
+                Color.clear
+                if model.isSettled {
+                    RoutePickerButton(tint: .white.opacity(0.9))
+                        .transition(.blurFade(radius: 4))
+                }
+            }
+            .frame(width: 28, height: 28)
         }
         .foregroundStyle(.white)
         .frame(height: 30)

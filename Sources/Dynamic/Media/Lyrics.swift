@@ -116,7 +116,7 @@ final class LyricsService {
     private var task: Task<Void, Never>?
     private var currentKey: String?
 
-    private static let endpoint = URL(string: "https://lrclib.net/api/get")!
+    nonisolated private static let endpoint = URL(string: "https://lrclib.net/api/get")!
 
     /// Ephemeral, and explicitly stripped of ambient state.
     ///
@@ -125,7 +125,7 @@ final class LyricsService {
     /// presenting whatever happens to be in them — this is a third-party server
     /// receiving what the user is listening to, and that should be all it
     /// receives.
-    nonisolated(unsafe) private static let session: URLSession = {
+    nonisolated private static let session: URLSession = {
         let configuration = URLSessionConfiguration.ephemeral
         configuration.httpCookieStorage = nil
         configuration.httpCookieAcceptPolicy = .never
@@ -158,6 +158,13 @@ final class LyricsService {
 
         isLoading = true
         task = Task { [weak self] in
+            // Skipping through a playlist should not fire a lookup per track.
+            // Waiting out a short quiet period means only the track actually
+            // landed on is requested, instead of a burst of requests that are
+            // cancelled a moment later.
+            try? await Task.sleep(for: .milliseconds(350))
+            guard !Task.isCancelled else { return }
+
             let found = await Self.fetch(track)
             guard !Task.isCancelled, let self, self.currentKey == key else { return }
 

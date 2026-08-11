@@ -16,11 +16,11 @@ enum Brightness {
         RTLD_NOW
     )
 
-    private nonisolated(unsafe) static let getter: GetBrightness? = handle
+    private nonisolated static let getter: GetBrightness? = handle
         .flatMap { dlsym($0, "DisplayServicesGetBrightness") }
         .map { unsafeBitCast($0, to: GetBrightness.self) }
 
-    private nonisolated(unsafe) static let setter: SetBrightness? = handle
+    private nonisolated static let setter: SetBrightness? = handle
         .flatMap { dlsym($0, "DisplayServicesSetBrightness") }
         .map { unsafeBitCast($0, to: SetBrightness.self) }
 

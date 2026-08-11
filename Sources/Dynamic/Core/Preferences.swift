@@ -62,7 +62,7 @@ enum MotionPreset: String, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .snappy: "경쾌하게"
+        case .snappy: "아일랜드 기준"
         case .bouncy: "탄력 있게"
         case .gentle: "부드럽게"
         }

@@ -42,7 +42,7 @@ enum Motion {
 
         /// When everything has visually finished, ignoring the spring's tail.
         var settled: Double {
-            max(containerDuration, contentLead + entranceDuration)
+            max(max(containerDuration, heightDuration), contentLead + entranceDuration)
         }
 
         var spring: Spring {
@@ -59,13 +59,24 @@ enum Motion {
         NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
     }
 
-    /// Apple's own preset bounces are 0 (smooth), 0.15 (snappy) and 0.3
-    /// (bouncy); these sit in the same range so the notch feels like system UI.
-    /// Durations carry a Mac uplift — a panel this size crossing this much
-    /// distance at iPhone speed reads as a jump cut.
+    /// `.snappy` is measured, not chosen.
+    ///
+    /// A 50fps screen recording of a real Dynamic Island expanding and
+    /// collapsing was stepped frame by frame, the silhouette extracted per
+    /// frame, and Apple's own `Spring(duration:bounce:)` fitted to the
+    /// resulting width and height curves by least squares:
+    ///
+    ///     expand   width  0.445s · bounce +0.10   (rms 0.009)
+    ///     expand   height 0.420s · bounce +0.06   (rms 0.011)
+    ///     collapse height 0.455s · bounce +0.12   (rms 0.007)
+    ///     collapse width  ~0.19s · overdamped
+    ///
+    /// So: barely any bounce, both axes together on the way out, and on the way
+    /// back the width beats the height home by more than double. The other two
+    /// presets keep the springier and softer feels as alternatives.
     private static func base(_ preset: MotionPreset) -> (duration: Double, bounce: Double) {
         switch preset {
-        case .snappy: (duration: 0.34, bounce: 0.18)
+        case .snappy: (duration: 0.44, bounce: 0.08)
         case .bouncy: (duration: 0.46, bounce: 0.28)
         case .gentle: (duration: 0.58, bounce: 0.04)
         }
@@ -94,33 +105,49 @@ enum Motion {
             )
         }
 
-        let duration = opening ? spring.duration : spring.duration * 0.86
-        let bounce = opening ? spring.bounce : min(0.08, spring.bounce * 0.3)
+        // Opening, the two axes travel together.
+        //
+        // This is the correction the reference forced. Staggering them — width
+        // first, height chasing — was a guess, and the real island does not do
+        // it: measured, its width and height progress track each other within
+        // two percent for the whole expansion. Height runs fractionally quicker
+        // and flatter, which is all the separation there is.
+        if opening {
+            return Timeline(
+                containerDuration: spring.duration,
+                containerBounce: spring.bounce,
+                heightDuration: spring.duration * 0.95,
+                heightBounce: spring.bounce * 0.6,
+                // Contents start arriving almost immediately.
+                //
+                // Frame-matched against the reference: its panel already
+                // carries a visible, heavily defocused ghost of the layout one
+                // twentieth of a second in, and is fully opaque before the
+                // container stops. Holding the contents back — which is what a
+                // longer lead does — reads as an empty box that then fills,
+                // and an empty box is the one thing the island never shows.
+                contentLead: spring.duration * 0.08,
+                entranceDuration: spring.duration * 0.85,
+                exitDuration: spring.duration * 0.16
+            )
+        }
 
+        // Closing, the width beats the height home.
+        //
+        // Measured at better than two to one: the panel pulls in horizontally
+        // almost at once, leaving a tall narrow block that then retracts
+        // upward. On a MacBook that reads as the sheet being drawn back into
+        // the slot it came out of, which is exactly what it is.
         return Timeline(
-            containerDuration: duration,
-            containerBounce: bounce,
-            // The axis that belongs to the *destination* resolves last.
-            //
-            // Opening, the width leads: the shape spreads along the bezel and
-            // then descends, which is how something emerging from a slot has to
-            // move. Letting the height lead instead makes it pass through a
-            // tall narrow box, which reads as a window growing.
-            //
-            // Closing, the height leads hard: the pill regains its own height
-            // almost at once, leaving a wide short bar that then reels its
-            // width back in.
-            heightDuration: opening ? duration * 1.18 : duration * 0.55,
-            heightBounce: opening ? bounce * 0.5 : 0,
-            // Just enough lead to read as sequenced. Any longer and the panel
-            // looks like it opened empty and is waiting for something.
-            contentLead: duration * 0.16,
-            // Content resolves considerably slower than the container moves.
-            // The container is a physical object and wants to arrive; the
-            // content is coming into focus, and rushing that is what makes a
-            // blur transition look like a cheap fade.
-            entranceDuration: duration * 0.68,
-            exitDuration: duration * 0.32
+            containerDuration: spring.duration * 0.43,
+            containerBounce: 0,
+            heightDuration: spring.duration * 1.02,
+            heightBounce: spring.bounce * 1.4,
+            contentLead: 0,
+            entranceDuration: spring.duration * 0.5,
+            // Contents defocus almost immediately — in the reference they are
+            // unreadable within two frames of the collapse starting.
+            exitDuration: spring.duration * 0.16
         )
     }
 
@@ -154,13 +181,77 @@ enum Motion {
     /// something resolving and something simply appearing.
     static func contentEntrance(_ preset: MotionPreset) -> Animation {
         let line = timeline(preset, opening: true)
-        return .easeInOut(duration: line.entranceDuration).delay(line.contentLead)
+        // `easeOut`, matching what `entranceOpacity` samples for the Motion Lab
+        // — these disagreed, and the lab was drawing a curve the app did not
+        // run. It is also the measured shape: opacity climbs fast and then
+        // eases into place behind the container.
+        return .easeOut(duration: line.entranceDuration).delay(line.contentLead)
     }
 
     /// Content leaving, ahead of the container closing over the space it
     /// occupied.
     static func contentExit(_ preset: MotionPreset) -> Animation {
-        .easeInOut(duration: timeline(preset, opening: false).exitDuration)
+        // `easeIn`, to match `exitOpacity`. Measured, the contents barely fade
+        // at first — the defocus does the work of removing them, and the fade
+        // catches up.
+        .easeIn(duration: timeline(preset, opening: false).exitDuration)
+    }
+
+    /// Defocus runs on its own clock, later and shorter than the fade.
+    ///
+    /// In the reference the arriving contents are *unreadable* until the
+    /// container is roughly ninety percent of the way there, and then snap into
+    /// focus over the last eighty milliseconds. Tying blur to the same curve as
+    /// opacity — the obvious thing, and what this used to do — clears it
+    /// steadily instead, and the panel reads as a cross-fade with a soft edge
+    /// rather than as something resolving.
+    ///
+    /// Measured against the reference: moderately defocused at half way,
+    /// legible at 250ms, fully sharp by 300ms — three quarters of the way
+    /// through a 400ms expansion, with the container still settling behind it.
+    /// `easeOut`, not `easeInOut`.
+    ///
+    /// Blur is not perceived linearly: most of the illegibility lives in the
+    /// last couple of points of radius, so a curve that eases *in* at the end
+    /// holds the content unreadable and then snaps it into focus in a frame or
+    /// two. Measured against the reference, that snap is the tell — the real
+    /// island's contents sharpen over roughly a hundred milliseconds. Easing out
+    /// takes the radius down quickly and then spends the rest of the time in
+    /// the range where the eye can actually see it resolving.
+    static func contentFocus(_ preset: MotionPreset) -> Animation {
+        let duration = base(preset).duration
+        return .easeOut(duration: duration * focusDurationRatio)
+            .delay(duration * focusDelayRatio)
+    }
+
+    /// Blur arriving as content leaves. No delay: this is the first thing that
+    /// happens in a collapse.
+    static func contentDefocus(_ preset: MotionPreset) -> Animation {
+        .easeOut(duration: base(preset).duration * defocusDurationRatio)
+    }
+
+    /// Shared by the animations above and by the Motion Lab's sampling, so the
+    /// lab can never show a defocus the app does not perform.
+    static let focusDelayRatio = 0.30
+    static let focusDurationRatio = 0.42
+    static let defocusDurationRatio = 0.16
+
+    /// Blur at `time`, as a fraction of the transition's maximum.
+    static func focusFactor(_ preset: MotionPreset, at time: Double, entering: Bool) -> Double {
+        guard !prefersReducedMotion else { return 0 }
+        let duration = base(preset).duration
+
+        if entering {
+            let delay = duration * focusDelayRatio
+            let span = duration * focusDurationRatio
+            guard span > 0 else { return time >= delay ? 0 : 1 }
+            let progress = min(1, max(0, (time - delay) / span))
+            return 1 - UnitCurve.easeOut.value(at: progress)
+        }
+
+        let span = duration * defocusDurationRatio
+        guard span > 0 else { return 1 }
+        return UnitCurve.easeOut.value(at: min(1, max(0, time / span)))
     }
 
     /// Blur-and-fade between siblings inside an already settled panel, where
@@ -202,11 +293,12 @@ enum Motion {
     static func squashDelay(_ preset: MotionPreset, opening: Bool) -> Double {
         guard !prefersReducedMotion else { return 0 }
         let line = timeline(preset, opening: opening)
-        // Slightly later on the way in: the width is the last thing to arrive.
-        // Peaks a touch *before* the container lands, so the shape is caught
-        // being pushed past its resting size rather than deforming after it
-        // has already stopped.
-        return line.containerDuration * (opening ? 0.42 : 0.48)
+        // Timed to the *width*, which is the axis the recoil acts on. Peaks a
+        // touch before it lands, so the shape is caught being pushed past its
+        // resting size rather than deforming after it has already stopped.
+        // Closing, the width arrives early and fast, so the impulse has to be
+        // proportionally later within its much shorter travel.
+        return line.containerDuration * (opening ? 0.42 : 0.72)
     }
 
     static func squashRamp() -> Animation {
@@ -270,29 +362,13 @@ enum Motion {
 /// Dynamic Island has. A little counter-movement in height is kept so the
 /// deformation reads as a soft body rather than a horizontal stretch, but it is
 /// small enough that nothing visibly squashes vertically.
-struct JellyModifier: ViewModifier, Animatable {
-    var amount: CGFloat
-    var anchor: UnitPoint = .top
-
-    private static let horizontalGain: CGFloat = 0.075
-    private static let verticalGain: CGFloat = 0.016
-
-    var animatableData: CGFloat {
-        get { amount }
-        set { amount = newValue }
-    }
-
-    func body(content: Content) -> some View {
-        content.scaleEffect(
-            x: 1 + amount * Self.horizontalGain,
-            y: 1 - amount * Self.verticalGain,
-            anchor: anchor
-        )
-    }
-}
-
-extension View {
-    func jelly(_ amount: CGFloat, anchor: UnitPoint = .top) -> some View {
-        modifier(JellyModifier(amount: amount, anchor: anchor))
-    }
+///
+/// Applied by scaling the notch *path* (see `NotchRootView`) rather than by
+/// transforming the view. A view transform has to be pushed into every AppKit
+/// view SwiftUI hosts inside the notch, and each one dirties Auto Layout and the
+/// window's tracking areas at display refresh — measured at 4.4 points of CPU
+/// through every transition, for a deformation of at most 7.5%.
+enum JellyModifier {
+    static let horizontalGain: CGFloat = 0.075
+    static let verticalGain: CGFloat = 0.016
 }

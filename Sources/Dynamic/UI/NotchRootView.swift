@@ -58,6 +58,24 @@ struct NotchRootView: View {
             width: model.widthAnimation,
             height: model.heightAnimation
         )
+        // The recoil deforms the *path*, not the view.
+        //
+        // `scaleEffect` on the container is the obvious way to do this and cost
+        // 4.4 points of CPU through every transition. A view transform has to be
+        // pushed down into every AppKit view SwiftUI is hosting inside — the
+        // meter, the AirPlay button — and each `-[NSView setFrameTransform:]`
+        // dirties Auto Layout and the window's tracking areas, recursively, at
+        // display refresh. Scaling the silhouette costs one extra affine
+        // transform on a path that is being rebuilt anyway.
+        //
+        // The visible difference is that the content no longer stretches with
+        // the shape, which is what the impulse was always supposed to avoid:
+        // the island's recoil is the black body flexing, not its text.
+        let deformed = shape.scale(
+            x: 1 + model.squash * JellyModifier.horizontalGain,
+            y: 1 - model.squash * JellyModifier.verticalGain,
+            anchor: .top
+        )
 
         return ZStack(alignment: .top) {
             // The shadow gets its own layer, behind everything, holding nothing
@@ -69,20 +87,22 @@ struct NotchRootView: View {
             // means re-blurring a 646x244 region at display refresh. Here it
             // only changes when the shape itself does.
             //
+            // This layer is also the notch's black body: filling the shape again
+            // inside the clipped layer below drew an identical black silhouette
+            // on top of this one, invisibly, every frame — 5 points of CPU for
+            // nothing.
+            //
             // Both layers take the identical sizing modifier: they have to move
             // as one object, and giving them separate animations makes the
             // shadow visibly lag the panel it belongs to.
-            shape
+            deformed
                 .fill(Color.black)
                 .shadow(color: .black.opacity(shadowOpacity), radius: shadowRadius, y: 7)
                 .modifier(sizing)
 
-            ZStack(alignment: .top) {
-                shape.fill(Color.black)
-                content
-            }
-            .modifier(sizing)
-            .clipShape(shape)
+            content
+                .modifier(sizing)
+                .clipShape(deformed)
 
             // A sibling layer carrying the same sizing modifier, not an overlay
             // on the stack. As an overlay it sat outside the sizing — and so
@@ -92,12 +112,14 @@ struct NotchRootView: View {
             //
             // Never conditional either: wrapping it in an `if` to skip an
             // invisible stroke changes the view's identity, and SwiftUI rebuilds
-            // the subtree mid-transition.
-            shape
-                .stroke(Color.white.opacity(rimOpacity), lineWidth: 0.5)
+            // the subtree mid-transition. A zero line width is the way to skip
+            // the work without touching identity — and it is worth skipping,
+            // because stroking means computing the outline of the whole Bézier
+            // silhouette from scratch on every frame.
+            deformed
+                .stroke(Color.white.opacity(rimOpacity), lineWidth: rimOpacity > 0 ? 0.5 : 0)
                 .modifier(sizing)
         }
-        .jelly(model.squash)
         .onDrop(of: [.fileURL], isTargeted: $isDropTargeted) { providers in
             handleDrop(providers)
         }
@@ -348,10 +370,16 @@ private struct PeekContentView: View {
         HStack(spacing: 0) {
             HStack(spacing: 10) {
                 icon
+                // Keyed on the text, so a banner that absorbs a second event
+                // cross-fades to the new wording instead of cutting to it. This
+                // is the whole visible half of absorption: without it a burst of
+                // track changes reads as the label glitching.
                 Text(title)
                     .font(.system(size: 12.5, weight: .semibold))
                     .lineLimit(1)
                     .truncationMode(.tail)
+                    .id(title)
+                    .transition(.blurFade(radius: 5))
             }
             .frame(width: model.peekSideWidth, alignment: .leading)
 
@@ -364,6 +392,8 @@ private struct PeekContentView: View {
                         .foregroundStyle(.white.opacity(0.55))
                         .lineLimit(1)
                         .truncationMode(.middle)
+                        .id(subtitle)
+                        .transition(.blurFade(radius: 5))
                 }
                 trailing
             }
@@ -720,7 +750,11 @@ struct NotchSizing: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .frame(height: size.height)
+            // Top-aligned rather than centred, so the layer needs no filler view
+            // to hold it open. A `Color.clear` behind the content did the same
+            // job and measured at three points of CPU through every transition:
+            // it is a full-size solid that gets composited on every frame.
+            .frame(height: size.height, alignment: .top)
             .animation(height, value: size.height)
             .frame(width: size.width)
             .animation(width, value: size.width)

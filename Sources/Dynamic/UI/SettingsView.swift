@@ -6,6 +6,9 @@ import SwiftUI
 @MainActor
 enum SettingsWindow {
     private static var window: NSWindow?
+    private static let lifetime = Lifetime()
+
+    static var isOpen: Bool { window != nil }
 
     static func show() {
         if let window {
@@ -19,6 +22,14 @@ enum SettingsWindow {
         created.title = "Dynamic"
         created.styleMask = [.titled, .closable, .miniaturizable]
         created.isReleasedWhenClosed = false
+        // Torn down on close, not kept around.
+        //
+        // A settings window is opened once in a while and then closed for good,
+        // but holding it keeps the whole SwiftUI tree behind four tabs — the
+        // Motion Lab's sampled curves included — alive for the rest of the
+        // session. That is most of this app's resident memory, permanently, for
+        // a window nobody is looking at. Rebuilding it costs a few frames.
+        created.delegate = lifetime
         created.setContentSize(NSSize(width: 520, height: 560))
         created.center()
         // Centring alone puts the title bar under the notch panel, which sits
@@ -35,6 +46,20 @@ enum SettingsWindow {
         window = created
         NSApp.activate(ignoringOtherApps: true)
         created.makeKeyAndOrderFront(nil)
+    }
+
+    /// `isReleasedWhenClosed` stays false — AppKit releasing a window out from
+    /// under ARC is its own hazard — so releasing means dropping our reference.
+    private final class Lifetime: NSObject, NSWindowDelegate {
+        func windowWillClose(_ notification: Notification) {
+            MainActor.assumeIsolated {
+                guard let closing = notification.object as? NSWindow,
+                      closing === SettingsWindow.window
+                else { return }
+                closing.contentViewController = nil
+                SettingsWindow.window = nil
+            }
+        }
     }
 }
 
@@ -293,6 +318,10 @@ struct SettingsView: View {
                                     string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Focus"
                                 )!)
                             }
+                            // The answer is cached, and the user is on their way
+                            // to change it. Drop the cache now so coming back
+                            // shows the new state rather than the old one.
+                            Button("다시 확인") { focus.invalidateAuthorizationCache() }
                         }
                         .controlSize(.small)
                     }

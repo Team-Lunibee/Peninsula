@@ -27,6 +27,15 @@ struct IslandContentModifier: ViewModifier {
     }
 }
 
+/// Defocus alone, so it can run on a different clock from the fade.
+struct IslandBlurModifier: ViewModifier {
+    var radius: CGFloat
+
+    func body(content: Content) -> some View {
+        content.blur(radius: radius)
+    }
+}
+
 extension AnyTransition {
     /// The house transition.
     ///
@@ -55,10 +64,10 @@ extension AnyTransition {
         let preset = Preferences.shared.motion
         let reduced = Motion.prefersReducedMotion
 
+        // Reduce Motion keeps the fade but drops the effects that actually
+        // move: defocusing, scaling and displacement.
         let absent = IslandContentModifier(
-            // Reduce Motion keeps the fade but drops the effects that actually
-            // move: defocusing, scaling and displacement.
-            blurRadius: reduced ? 0 : blur,
+            blurRadius: 0,
             opacity: 0,
             scale: reduced ? 1 : scale,
             anchor: anchor,
@@ -72,12 +81,29 @@ extension AnyTransition {
             spread: 0
         )
 
-        return .asymmetric(
+        let fade = AnyTransition.asymmetric(
             insertion: .modifier(active: absent, identity: present)
                 .animation(Motion.contentEntrance(preset)),
             removal: .modifier(active: absent, identity: present)
                 .animation(Motion.contentExit(preset))
         )
+        guard !reduced else { return fade }
+
+        // Blur is a separate transition purely so it can carry its own
+        // animation. Composed into the modifier above it would be interpolated
+        // along the fade's curve, and the whole point is that it is not: it is
+        // held nearly to the end of the entrance and released, and on the way
+        // out it arrives before anything else has moved.
+        let defocused = IslandBlurModifier(radius: blur)
+        let focused = IslandBlurModifier(radius: 0)
+        let focus = AnyTransition.asymmetric(
+            insertion: .modifier(active: defocused, identity: focused)
+                .animation(Motion.contentFocus(preset)),
+            removal: .modifier(active: defocused, identity: focused)
+                .animation(Motion.contentDefocus(preset))
+        )
+
+        return fade.combined(with: focus)
     }
 
     /// Plain blur-and-fade for elements that swap in place inside an already

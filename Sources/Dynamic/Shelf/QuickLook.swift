@@ -45,4 +45,4 @@ extension QuickLook: @preconcurrency QLPreviewPanelDataSource {
     }
 }
 
-extension QuickLook: @preconcurrency QLPreviewPanelDelegate {}
+extension QuickLook: QLPreviewPanelDelegate {}

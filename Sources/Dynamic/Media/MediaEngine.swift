@@ -90,6 +90,12 @@ final class MediaEngine {
 
     // MARK: - Ingest
 
+    /// Test seam for `Bench`: pushes a synthetic payload through the real
+    /// ingest path so profiling sees the panel a real track produces.
+    func ingestForBench(_ payload: [String: Any]) {
+        ingest(payload: payload, isDiff: false)
+    }
+
     private func ingest(payload: [String: Any], isDiff: Bool) {
         accumulator.apply(payload: payload, isDiff: isDiff)
         unavailableReason = nil

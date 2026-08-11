@@ -53,6 +53,24 @@ enum NotchActivity: Equatable {
     case dropTarget
     case info(ActivityInfo)
     case level(HUDInfo)
+
+    /// Two activities of the same kind can replace each other inside a banner
+    /// that is already on screen. Different kinds cannot: a download finishing
+    /// while a track banner is up is a separate thing to say, not a correction
+    /// of the first.
+    enum Kind {
+        case track, files, drop, info, level
+    }
+
+    var kind: Kind {
+        switch self {
+        case .trackChanged: .track
+        case .filesAdded: .files
+        case .dropTarget: .drop
+        case .info: .info
+        case .level: .level
+        }
+    }
 }
 
 enum NotchTab: String, CaseIterable, Identifiable {
@@ -93,6 +111,17 @@ final class NotchViewModel {
     /// Signed squash impulse driving the jelly deformation. Positive stretches
     /// wide and flat; it springs back to zero on its own.
     var squash: CGFloat = 0
+
+    /// False while the container is travelling between presentations.
+    ///
+    /// Views that host AppKit content — the meter, the AirPlay picker — are far
+    /// more expensive to keep on screen while the panel resizes than SwiftUI
+    /// views are, because SwiftUI has to hand each of them new geometry through
+    /// AppKit on every frame. Anything that can wait for the panel to land
+    /// should read this and wait.
+    private(set) var isSettled = true
+
+    private var settleTask: Task<Void, Never>?
 
     let media: MediaEngine
     let shelf: ShelfStore
@@ -191,6 +220,7 @@ final class NotchViewModel {
         withAnimation(Motion.open(preferences.motion)) {
             presentation = target
         }
+        beginSettling(opening: true)
         kickSquash(target == .compact ? 0.35 : -0.25, after: Motion.squashDelay(preferences.motion, opening: true))
     }
 
@@ -347,6 +377,7 @@ final class NotchViewModel {
         withAnimation(Motion.open(preferences.motion)) {
             presentation = .expanded
         }
+        beginSettling(opening: true)
         // Positive: stretched wide and flat, the shape of something launching
         // outward. The container spring is near-flat, so this is the overshoot.
         kickSquash(0.8, after: Motion.squashDelay(preferences.motion, opening: true))
@@ -361,6 +392,7 @@ final class NotchViewModel {
         withAnimation(Motion.close(preferences.motion)) {
             presentation = restingPresentation
         }
+        beginSettling(opening: false)
         // Negative: pinched narrow, then springing back out to its resting
         // width. This is the horizontal recoil, and it carries the whole
         // closing gesture.
@@ -373,14 +405,30 @@ final class NotchViewModel {
 
     /// Shows a transient banner. Ignored while the panel is open, since the
     /// information is already on screen.
+    ///
+    /// A banner of the same kind arriving while one is already up is *absorbed*
+    /// rather than staged behind it: the payload swaps in place and the dwell
+    /// starts over. Skipping through tracks otherwise re-ran the open spring and
+    /// the recoil impulse on every change — three or four deep, all interrupting
+    /// each other — and the pill visibly fought itself. The island's own answer
+    /// to a second event during a Live Activity is to update the one on screen.
     func present(_ activity: NotchActivity, for duration: TimeInterval = 2.4) {
         guard presentation != .expanded else { return }
+
+        if presentation == .peek, self.activity?.kind == activity.kind {
+            withAnimation(Motion.content(preferences.motion)) {
+                self.activity = activity
+            }
+            scheduleDismissal(after: duration)
+            return
+        }
 
         activityDismissal?.cancel()
         withAnimation(Motion.activity()) {
             self.activity = activity
             presentation = .peek
         }
+        beginSettling(opening: true)
         kickSquash(0.5, after: Motion.squashDelay(preferences.motion, opening: true))
 
         scheduleDismissal(after: duration)
@@ -396,15 +444,17 @@ final class NotchViewModel {
                 self.activity = nil
                 self.presentation = self.restingPresentation
             }
+            self.beginSettling(opening: false)
             self.kickSquash(-1.0, after: Motion.squashDelay(self.preferences.motion, opening: false))
         }
     }
 
     /// Shows a HUD reading, or updates one already on screen.
     ///
-    /// Holding a volume key fires ten times a second. Re-presenting each time
-    /// would re-run the open spring and the squash impulse, and the pill would
-    /// visibly stutter. Once the banner is up, only the payload changes.
+    /// Holding a volume key fires ten times a second, so this leans entirely on
+    /// `present`'s absorption — with one difference: the bar has to track the
+    /// key, so the payload is assigned outside an animation rather than
+    /// cross-fading each step.
     func presentLevel(_ info: HUDInfo) {
         if case .level = activity, presentation == .peek {
             activity = .level(info)
@@ -437,6 +487,7 @@ final class NotchViewModel {
             activity = .dropTarget
             presentation = .expanded
         }
+        beginSettling(opening: true)
         kickSquash(0.45, after: Motion.squashDelay(preferences.motion, opening: true))
     }
 
@@ -446,9 +497,32 @@ final class NotchViewModel {
             activity = nil
             presentation = restingPresentation
         }
+        beginSettling(opening: false)
     }
 
     // MARK: - Jelly
+
+    // MARK: - Settling
+
+    /// Marks the container as travelling, and schedules it back to settled.
+    ///
+    /// Deliberately a timer rather than an animation-completion callback:
+    /// SwiftUI's completion fires when the spring's *tail* finishes, long after
+    /// the panel has visually arrived, and anything waiting on it appears late
+    /// enough to read as a second event.
+    private func beginSettling(opening: Bool) {
+        settleTask?.cancel()
+        isSettled = false
+
+        let delay = Motion.timeline(preferences.motion, opening: opening).settled
+        settleTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(delay))
+            guard !Task.isCancelled, let self else { return }
+            withAnimation(Motion.transition(self.preferences.motion)) {
+                self.isSettled = true
+            }
+        }
+    }
 
     /// Injects a deformation impulse that springs back to rest. Keeping it as a
     /// separate one-shot value — rather than baking it into the size animation
@@ -462,7 +536,20 @@ final class NotchViewModel {
         guard !Motion.prefersReducedMotion else { return }
 
         squashRelease?.cancel()
-        squash = 0
+
+        // Let a deformation still in flight spring home rather than assigning
+        // zero outright.
+        //
+        // A bare `squash = 0` outside an animation teleports the shape from
+        // wherever it had reached straight back to its resting width. It is
+        // invisible when impulses are seconds apart and unmistakable when they
+        // are not: skipping through tracks fires one of these per change, and
+        // every one of them snapped the pill mid-recoil.
+        if squash != 0 {
+            withAnimation(Motion.squashRelease()) {
+                squash = 0
+            }
+        }
 
         squashRelease = Task { [weak self] in
             if delay > 0 {
