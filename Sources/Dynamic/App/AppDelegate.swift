@@ -47,7 +47,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         installStatusItem()
         installSignalHandlers()
         schedulePruning()
-        Bench.startIfRequested(model: controller.model)
+        Bench.startIfRequested(model: controller.model, controller: controller)
 
         Log.app.info("Dynamic launched")
     }

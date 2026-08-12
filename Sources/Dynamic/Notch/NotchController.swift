@@ -12,7 +12,7 @@ final class NotchController: NSObject {
 
     private var clickMonitors: [Any] = []
     private var pointerTimer: Timer?
-    private var lastPolledLocation: CGPoint = .zero
+    private var lastPolledLocation: CGPoint?
     private var hoverTask: Task<Void, Never>?
     private var isPointerInTrigger = false
     private var dropSettleTask: Task<Void, Never>?
@@ -63,6 +63,7 @@ final class NotchController: NSObject {
         observePresentation()
         observeRestingState()
         observeTrackChanges()
+        observeDisplayState()
         applyFullScreenBehaviour()
         Log.notch.info("notch controller started")
     }
@@ -76,8 +77,7 @@ final class NotchController: NSObject {
         dragMonitor = nil
         clickMonitors.forEach(NSEvent.removeMonitor)
         clickMonitors.removeAll()
-        pointerTimer?.invalidate()
-        pointerTimer = nil
+        stopPointerPolling()
         NotificationCenter.default.removeObserver(self)
         NSWorkspace.shared.notificationCenter.removeObserver(self)
         escalator.deactivate()
@@ -371,18 +371,50 @@ final class NotchController: NSObject {
     /// person could perceive. The rate goes up once the pointer is actually
     /// engaged, where closing should feel immediate.
     private func startPointerPolling() {
+        guard pointerTimer == nil else { return }
         let timer = Timer(timeInterval: Self.pointerPollInterval, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated {
-                guard let self else { return }
-                let location = NSEvent.mouseLocation
-                guard location != self.lastPolledLocation else { return }
-                self.lastPolledLocation = location
-                self.followMouseAcrossDisplays(to: location)
-                self.updateHover(at: location)
-            }
+            MainActor.assumeIsolated { self?.pollPointer() }
         }
         RunLoop.main.add(timer, forMode: .common)
         pointerTimer = timer
+    }
+
+    private func stopPointerPolling() {
+        pointerTimer?.invalidate()
+        pointerTimer = nil
+    }
+
+    /// Whether the pointer is currently being polled. Read by the bench.
+    var isPollingPointer: Bool { pointerTimer != nil }
+
+    private func pollPointer() {
+        let location = NSEvent.mouseLocation
+        // Nothing to do when the cursor has not moved, which is most ticks.
+        guard location != lastPolledLocation else { return }
+        lastPolledLocation = location
+        followMouseAcrossDisplays(to: location)
+        updateHover(at: location)
+    }
+
+    /// Polling stops while the display is asleep or the session is switched
+    /// away. There is no cursor to follow into a notch nobody can see, and ten
+    /// wake-ups a second is exactly the sort of thing that keeps a laptop from
+    /// settling into its low-power states overnight.
+    private func observeDisplayState() {
+        let display = DisplayState.shared
+        observers.append(
+            observeChanges {
+                _ = display.isAwake
+            } onChange: { [weak self] in
+                guard let self else { return }
+                guard display.isAwake else { return self.stopPointerPolling() }
+                // Forgotten rather than kept, so the first tick after waking
+                // re-reads the hover state instead of trusting where the
+                // pointer was before the screen went dark.
+                self.lastPolledLocation = nil
+                self.startPointerPolling()
+            }
+        )
     }
 
     /// 10Hz. Well inside the hover delay, and two orders of magnitude fewer

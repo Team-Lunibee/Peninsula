@@ -16,7 +16,7 @@ enum Bench {
         fputs(message + "\n", stderr)
     }
 
-    static func startIfRequested(model: NotchViewModel) {
+    static func startIfRequested(model: NotchViewModel, controller: NotchController? = nil) {
         guard let mode = ProcessInfo.processInfo.environment["DYNAMIC_BENCH"] else { return }
 
         let cycles = ProcessInfo.processInfo.environment["DYNAMIC_BENCH_CYCLES"]
@@ -105,6 +105,33 @@ enum Bench {
                     model.expand()
                     try? await Task.sleep(for: .milliseconds(150))
                 }
+            }
+        // Drives the real screen-sleep notification through the real observer,
+        // rather than putting the display out and asking someone to watch.
+        case "sleep":
+            Task { @MainActor in
+                let center = NSWorkspace.shared.notificationCenter
+                @MainActor func report(_ label: String) {
+                    note("sleep: \(label) awake=\(DisplayState.shared.isAwake) polling=\(controller?.isPollingPointer ?? false)")
+                }
+                try? await Task.sleep(for: .seconds(3))
+                report("at rest       ")
+
+                center.post(name: NSWorkspace.screensDidSleepNotification, object: nil)
+                try? await Task.sleep(for: .seconds(2))
+                report("screens asleep")
+
+                center.post(name: NSWorkspace.screensDidWakeNotification, object: nil)
+                try? await Task.sleep(for: .seconds(2))
+                report("screens awake ")
+
+                center.post(name: NSWorkspace.sessionDidResignActiveNotification, object: nil)
+                try? await Task.sleep(for: .seconds(2))
+                report("session away  ")
+
+                center.post(name: NSWorkspace.sessionDidBecomeActiveNotification, object: nil)
+                try? await Task.sleep(for: .seconds(2))
+                report("session back  ")
             }
         case "peek":
             Task { @MainActor in
