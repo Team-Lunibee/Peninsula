@@ -18,6 +18,7 @@ final class NotchController: NSObject {
     private var dropSettleTask: Task<Void, Never>?
     private var observers: [Task<Void, Never>] = []
     private var lastTrackToken = 0
+    private let startedAt = Date()
 
     let model: NotchViewModel
     private let media: MediaEngine
@@ -217,7 +218,9 @@ final class NotchController: NSObject {
                 self.hostingView?.refreshTracking()
                 // Levels are read on a slow timer; opening the panel is the one
                 // moment someone is actually looking at them.
-                if self.model.presentation == .expanded {
+                let isOpen = self.model.presentation == .expanded
+                AppPlayback.shared.setVisible(isOpen)
+                if isOpen {
                     self.bluetooth.refresh()
                 }
             }
@@ -252,10 +255,22 @@ final class NotchController: NSObject {
                       self.media.hasTrack
                 else { return }
 
+                // Whatever is already playing is not a change.
+                //
+                // The adapter reports the current item as soon as it connects,
+                // which is a second or two after launch, and announcing that
+                // meant the island popped open every single time the app
+                // started — including the relaunch after every build.
+                guard Date().timeIntervalSince(self.startedAt) > Self.launchGrace else { return }
+
                 self.model.present(.trackChanged)
             }
         )
     }
+
+    /// How long after launch a track change is treated as the initial state
+    /// rather than as news.
+    private static let launchGrace: TimeInterval = 2.5
 
     // MARK: - Pointer
 

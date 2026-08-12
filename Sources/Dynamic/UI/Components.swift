@@ -156,34 +156,56 @@ extension TimeInterval {
 /// glance. Clicking it mutes.
 struct VolumeControl: View {
     var tint: Color
+    /// Icon of the app whose volume this is, when it is not the system's.
+    var sourceIcon: NSImage?
 
     @State private var volume = SystemVolume.shared
+    @State private var player = AppPlayback.shared
     @State private var isDragging = false
     @State private var draft: Float = 0
 
-    private var shown: Float { isDragging ? draft : volume.level }
+    /// The playing app's own volume when it has one, the output device's
+    /// otherwise. Turning the music down should not take notification sounds
+    /// with it — and when the player cannot be addressed (anything in a
+    /// browser), the system slider is the honest fallback rather than a control
+    /// that does nothing.
+    private var controlsApp: Bool { player.controlsVolume }
+
+    private var current: Float { controlsApp ? (player.volume ?? 0) : volume.level }
+    private var shown: Float { isDragging ? draft : current }
 
     var body: some View {
-        if volume.isAvailable {
+        if volume.isAvailable || controlsApp {
             HStack(spacing: 8) {
-                Button {
-                    volume.toggleMute()
-                } label: {
-                    Image(systemName: symbol)
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(.white.opacity(volume.isMuted ? 0.4 : 0.7))
-                        .frame(width: 16, height: 16)
-                        .contentTransition(.symbolEffect(.replace))
-                        .contentShape(Rectangle())
+                if controlsApp, let sourceIcon {
+                    // The app's own icon, because this is the app's own volume
+                    // and a speaker glyph here would claim otherwise.
+                    Image(nsImage: sourceIcon)
+                        .resizable()
+                        .frame(width: 15, height: 15)
+                        .opacity(0.9)
+                        .help("이 앱의 음량")
+                } else {
+                    Button {
+                        volume.toggleMute()
+                    } label: {
+                        Image(systemName: symbol)
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(.white.opacity(volume.isMuted ? 0.4 : 0.7))
+                            .frame(width: 16, height: 16)
+                            .contentTransition(.symbolEffect(.replace))
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .help("시스템 음량")
                 }
-                .buttonStyle(.plain)
 
                 GeometryReader { proxy in
                     let width = proxy.size.width
                     ZStack(alignment: .leading) {
                         Capsule().fill(.white.opacity(0.16))
                         Capsule()
-                            .fill(volume.isMuted ? Color.white.opacity(0.3) : tint)
+                            .fill(!controlsApp && volume.isMuted ? Color.white.opacity(0.3) : tint)
                             .frame(width: max(0, min(width, width * CGFloat(shown))))
                     }
                     .frame(height: isDragging ? 5 : 3.5)
@@ -194,7 +216,11 @@ struct VolumeControl: View {
                             .onChanged { value in
                                 isDragging = true
                                 draft = Float(min(1, max(0, value.location.x / max(width, 1))))
-                                volume.set(level: draft)
+                                if controlsApp {
+                                    player.set(volume: draft)
+                                } else {
+                                    volume.set(level: draft)
+                                }
                             }
                             .onEnded { _ in isDragging = false }
                     )

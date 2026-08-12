@@ -238,14 +238,21 @@ final class SpectrumHostView: NSView {
         var normalised = (slow * 0.5 + fast * 0.34 + flutter * 0.16 + 1) / 2
 
         // Skewed low, so the row spends most of its time modest and spikes
-        // occasionally. A uniform distribution leaves every bar hovering near
-        // the middle, which is the flattest-looking thing a meter can do — and
-        // is exactly what "too static" meant.
-        normalised = pow(normalised, 1.7)
+        // occasionally — a uniform distribution leaves every bar hovering near
+        // the middle, which is the flattest-looking thing a meter can do.
+        //
+        // But only slightly. At 1.7 the skew pushed the average down to about a
+        // third of the track, and on the compact pill's short track that left
+        // the whole row crawling along the bottom. The point of the skew is
+        // that peaks stand out, not that nothing ever reaches one.
+        normalised = pow(normalised, 1.25)
 
         let centre = Double(barCount - 1) / 2
         let distance = centre > 0 ? abs(Double(index) - centre) / centre : 0
-        let envelope = 1 - distance * 0.3
+        // Gentle enough that the outer bars still take part. At 0.3 they were
+        // capped near half height and the row read as a hill rather than a
+        // meter.
+        let envelope = 1 - distance * 0.18
 
         let minimum = restingScale
         return minimum + CGFloat(normalised * envelope) * (1 - minimum)

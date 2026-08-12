@@ -374,6 +374,14 @@ enum Motion {
 /// window's tracking areas at display refresh — measured at 4.4 points of CPU
 /// through every transition, for a deformation of at most 7.5%.
 enum JellyModifier {
-    static let horizontalGain: CGFloat = 0.075
-    static let verticalGain: CGFloat = 0.016
+    static let horizontalGain: CGFloat = 0.085
+    /// Read as the *counter*-movement of a soft body: as the shape pinches
+    /// narrow it swells taller, and as it stretches wide it flattens.
+    ///
+    /// This was 0.016, which is arithmetically a deformation and visually
+    /// nothing — on a 32pt pill it is half a point, well under the width of the
+    /// antialiased edge it is supposed to be moving. Four points of height on a
+    /// collapse is where it starts to read as the thing springing back rather
+    /// than merely arriving.
+    static let verticalGain: CGFloat = 0.07
 }

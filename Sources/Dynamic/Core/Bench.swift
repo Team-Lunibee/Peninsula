@@ -31,6 +31,32 @@ enum Bench {
         case "tracks": runTrackStorm(model: model)
         case "settings": runSettingsCycle()
         case "hud": runHUDProbe(model: model)
+        case "watch":
+            Task { @MainActor in
+                for tick in 0..<40 {
+                    note("watch[\(tick)] \(String(describing: model.presentation))")
+                    try? await Task.sleep(for: .milliseconds(250))
+                }
+            }
+        case "modes":
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(6))
+                @MainActor func state() -> String {
+                    let shuffle = String(describing: model.media.isShuffling)
+                    let repeating = String(describing: model.media.repeatState)
+                    return "shuffle=\(shuffle) repeat=\(repeating)"
+                }
+                note("modes before: \(state())")
+                model.media.toggleShuffle()
+                model.media.toggleRepeat()
+                try? await Task.sleep(for: .seconds(6))
+                note("modes after toggle: \(state())")
+                model.media.toggleShuffle()
+                model.media.toggleRepeat()
+                model.media.toggleRepeat()
+                try? await Task.sleep(for: .seconds(6))
+                note("modes restored: \(state())")
+            }
         case "charge":
             Task { @MainActor in
                 try? await Task.sleep(for: .seconds(3))
@@ -95,8 +121,8 @@ enum Bench {
     private static func injectTrack(into media: MediaEngine) {
         let now = Int64(Date().timeIntervalSince1970 * 1_000_000)
         media.ingestForBench([
-            "bundleIdentifier": "com.apple.Music",
-            "title": "Bench Track With A Deliberately Long Title",
+            "bundleIdentifier": ProcessInfo.processInfo.environment["DYNAMIC_BENCH_BUNDLE"] ?? "com.apple.Music",
+            "title": ProcessInfo.processInfo.environment["DYNAMIC_SHORT_TITLE"] == nil ? "Bench Track With A Deliberately Long Title" : "Short",
             "artist": "Benchmark Artist",
             "album": "Benchmark Album",
             "playing": true,
@@ -104,6 +130,8 @@ enum Bench {
             "durationMicros": 213_000_000,
             "elapsedTimeMicros": 41_000_000,
             "timestampEpochMicros": now,
+            "shuffleMode": ProcessInfo.processInfo.environment["DYNAMIC_BENCH_NOMODES"] == nil ? 3 : NSNull(),
+            "repeatMode": ProcessInfo.processInfo.environment["DYNAMIC_BENCH_NOMODES"] == nil ? 3 : NSNull(),
             "artworkData": artworkBase64(),
         ])
     }
@@ -255,7 +283,7 @@ enum Bench {
             for (index, gap) in gaps.enumerated() {
                 let now = Int64(Date().timeIntervalSince1970 * 1_000_000)
                 model.media.ingestForBench([
-                    "bundleIdentifier": "com.apple.Music",
+                    "bundleIdentifier": ProcessInfo.processInfo.environment["DYNAMIC_BENCH_BUNDLE"] ?? "com.apple.Music",
                     "title": "Storm Track \(index + 1)",
                     "artist": "Artist \(index + 1)",
                     "album": "Storm",

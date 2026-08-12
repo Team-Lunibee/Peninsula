@@ -52,6 +52,28 @@ final class MediaEngine {
         nowPlaying?.bundleIdentifier == "com.apple.Music"
     }
 
+    /// The scriptable player first, MediaRemote second.
+    ///
+    /// Music publishes neither of these in its now-playing payload — asked
+    /// directly it will say shuffle is on and repeat is all, while the payload
+    /// for the same track carries no such key. So the app itself is the better
+    /// source where it can be asked, and the payload is the fallback for
+    /// everything else. `nil` means nobody will say, and a control whose state
+    /// cannot be read should not be drawn at all rather than drawn guessing.
+    var isShuffling: Bool? {
+        AppPlayback.shared.isShuffling ?? nowPlaying?.shuffleMode.map { $0 > 1 }
+    }
+
+    var repeatState: AppPlayback.RepeatMode? {
+        if let mode = AppPlayback.shared.repeatMode { return mode }
+        switch nowPlaying?.repeatMode {
+        case 1: return .off
+        case 2: return .one
+        case 3: return .all
+        default: return nil
+        }
+    }
+
     func start() {
         guard bridge == nil else { return }
         guard let bridge = MediaRemoteBridge() else {
@@ -132,6 +154,7 @@ final class MediaEngine {
 
         if previous?.bundleIdentifier != snapshot.bundleIdentifier {
             updateSource(bundleIdentifier: snapshot.bundleIdentifier)
+            AppPlayback.shared.track(bundleIdentifier: snapshot.bundleIdentifier)
         }
 
         updateDormancy(isPlaying: snapshot.isPlaying)
@@ -178,6 +201,7 @@ final class MediaEngine {
         accent = .white
         sourceIcon = nil
         sourceName = nil
+        AppPlayback.shared.stop()
         loadedArtworkFingerprint = nil
         artworkTask?.cancel()
         artworkTask = nil
@@ -297,11 +321,21 @@ final class MediaEngine {
 
     func toggleShuffle() {
         Haptics.tap()
-        bridge?.send(.toggleShuffle)
+        // Scripting the player is both readable and precise; the remote command
+        // is a blind toggle, which is all there is for anything else.
+        if AppPlayback.shared.isShuffling != nil {
+            AppPlayback.shared.toggleShuffle()
+        } else {
+            bridge?.send(.toggleShuffle)
+        }
     }
 
     func toggleRepeat() {
         Haptics.tap()
-        bridge?.send(.toggleRepeat)
+        if AppPlayback.shared.repeatMode != nil {
+            AppPlayback.shared.cycleRepeat()
+        } else {
+            bridge?.send(.toggleRepeat)
+        }
     }
 }

@@ -183,8 +183,15 @@ final class NotchViewModel {
         max(13, geometry.closedSize.height - 13)
     }
 
+    /// Taller than it looks like it should be.
+    ///
+    /// At 13pt — which is what a 19pt inset leaves in a 32pt pill — the bars
+    /// have nowhere to go: a swing of three or four points reads as a row of
+    /// dots twitching rather than as a meter. The pill is 32pt and the artwork
+    /// beside it is 19, so there is room for a track half again as tall while
+    /// still leaving a clear margin top and bottom.
     var compactMeterHeight: CGFloat {
-        max(8, geometry.closedSize.height - 19)
+        max(10, geometry.closedSize.height - 14)
     }
 
     /// Whether the resting island is carrying the current lyric line.

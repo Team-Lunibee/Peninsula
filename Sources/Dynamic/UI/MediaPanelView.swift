@@ -71,7 +71,7 @@ struct MediaPanelView: View {
 
             // The gap between the metadata and the meter was dead space, and
             // volume is the one control the island has no answer for on a Mac.
-            VolumeControl(tint: tint)
+            VolumeControl(tint: tint, sourceIcon: media.sourceIcon)
                 .frame(width: 132)
                 .transition(.blurFade(radius: 6, spread: -26))
 
@@ -184,6 +184,21 @@ struct MediaPanelView: View {
             .opacity(media.supportsFavorite ? 1 : 0.28)
             .disabled(!media.supportsFavorite)
 
+            // Shuffle sits with the favourite, repeat with the output, so the
+            // three playback controls keep the middle to themselves. Both are
+            // only drawn when the player actually reports a mode — the engine
+            // could always *send* the command, but a control whose state you
+            // cannot read is a control that lies about what it did.
+            if let shuffling = media.isShuffling {
+                glyph(
+                    "shuffle",
+                    size: 15,
+                    action: media.toggleShuffle
+                )
+                .foregroundStyle(.white.opacity(shuffling ? 0.95 : 0.4))
+                .help(shuffling ? "셔플 끄기" : "셔플")
+            }
+
             Spacer(minLength: 12)
 
             HStack(spacing: 22) {
@@ -193,6 +208,16 @@ struct MediaPanelView: View {
             }
 
             Spacer(minLength: 12)
+
+            if let mode = media.repeatState {
+                glyph(
+                    mode == .one ? "repeat.1" : "repeat",
+                    size: 15,
+                    action: media.toggleRepeat
+                )
+                .foregroundStyle(.white.opacity(mode == .off ? 0.4 : 0.95))
+                .help(mode.label)
+            }
 
             // Mounted only once the panel has landed.
             //
