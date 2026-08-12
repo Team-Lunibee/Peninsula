@@ -83,38 +83,47 @@ final class LiveActivityCenter {
     private func announce(_ event: PowerMonitor.Event) {
         guard preferences.powerActivitiesEnabled else { return }
 
+        // Shaped after the real island's charge banner: the words on the left,
+        // the reading and a battery on the right, and nothing in between. No
+        // leading badge — a tinted circle in front of "충전 중" competes with the
+        // battery it is describing — and no remaining-time subtitle, which
+        // crowds the trailing region the percentage needs.
         let info: ActivityInfo = switch event {
         case .pluggedIn(let percentage):
             ActivityInfo(
-                symbol: "bolt.fill",
+                symbol: nil,
                 tint: .green,
                 title: "충전 중",
-                subtitle: remainingSubtitle,
-                trailingValue: "\(percentage)%"
+                subtitle: nil,
+                trailingValue: "\(percentage)%",
+                level: Double(percentage) / 100
             )
         case .unplugged(let percentage):
             ActivityInfo(
-                symbol: "battery.100",
+                symbol: nil,
                 tint: .white,
                 title: "배터리로 전환",
                 subtitle: remainingSubtitle,
-                trailingValue: "\(percentage)%"
+                trailingValue: "\(percentage)%",
+                level: Double(percentage) / 100
             )
         case .charged:
             ActivityInfo(
-                symbol: "battery.100.bolt",
+                symbol: nil,
                 tint: .green,
                 title: "충전 완료",
-                subtitle: "충전기를 뽑아도 됩니다",
-                trailingValue: "100%"
+                subtitle: nil,
+                trailingValue: "100%",
+                level: 1
             )
         case .low(let percentage):
             ActivityInfo(
-                symbol: "battery.25",
+                symbol: nil,
                 tint: .orange,
                 title: "배터리 부족",
-                subtitle: remainingSubtitle ?? "충전기를 연결하세요",
-                trailingValue: "\(percentage)%"
+                subtitle: nil,
+                trailingValue: "\(percentage)%",
+                level: Double(percentage) / 100
             )
         }
 

@@ -4,6 +4,7 @@ import AppKit
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private let media = MediaEngine()
     private let shelf = ShelfStore()
+
     private let activities = LiveActivityCenter()
     private let bluetooth = BluetoothBattery()
     private let hud = HUDController.shared
@@ -179,6 +180,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         hud.preferencesChanged()
     }
+
+    var shelfStore: ShelfStore { shelf }
 
     @objc private func quit() {
         NSApp.terminate(nil)

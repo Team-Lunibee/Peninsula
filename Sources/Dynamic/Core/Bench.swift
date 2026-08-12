@@ -1,4 +1,5 @@
 import AppKit
+import SwiftUI
 import ImageIO
 import UniformTypeIdentifiers
 
@@ -30,6 +31,22 @@ enum Bench {
         case "tracks": runTrackStorm(model: model)
         case "settings": runSettingsCycle()
         case "hud": runHUDProbe(model: model)
+        case "charge":
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(3))
+                for (title, tint, pct) in [
+                    ("충전 중", Color.green, 100),
+                    ("충전 중", Color.green, 62),
+                    ("배터리 부족", Color.orange, 18),
+                ] {
+                    model.present(.info(ActivityInfo(
+                        symbol: nil, tint: tint, title: title,
+                        subtitle: nil, trailingValue: "\(pct)%",
+                        level: Double(pct) / 100
+                    )), for: 60)
+                    try? await Task.sleep(for: .seconds(4))
+                }
+            }
         case "hover":
             Task { @MainActor in
                 try? await Task.sleep(for: .seconds(3))

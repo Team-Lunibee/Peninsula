@@ -29,12 +29,17 @@ enum NotchPresentation: Equatable {
 /// finished, a pair of earbuds connected. Everything that is just "icon, some
 /// words, maybe a number" shares one shape instead of growing another case.
 struct ActivityInfo: Equatable {
-    var symbol: String
+    /// Leading glyph. `nil` draws none — the real island's charging banner is
+    /// text on the left and the reading on the right, with no badge at all,
+    /// and a circle in front of the words only makes it noisier.
+    var symbol: String?
     var tint: Color
     var title: String
     var subtitle: String?
     /// Shown as a large trailing figure — a battery percentage, a count.
     var trailingValue: String?
+    /// 0 to 1. Draws a battery filled to that level after the figure.
+    var level: Double?
 }
 
 /// A volume or brightness reading. Separate from `ActivityInfo` because it

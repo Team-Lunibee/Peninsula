@@ -182,6 +182,62 @@ final class ShelfStore {
             items = survivors
             persist()
         }
+
+        sweepOrphans()
+    }
+
+    /// Deletes item directories the index does not know about.
+    ///
+    /// Everything above walks `items`, so anything on disk the index has lost
+    /// track of is invisible to it — and therefore permanent. That happens for
+    /// real: killed between the copy finishing and the index being written,
+    /// `persist()` failing on a full disk, or the index file itself being
+    /// corrupted, in which case `load()` decodes to an empty array and *every*
+    /// stored file is orphaned at once. Since the shelf keeps copies, an orphan
+    /// is a file nothing will ever remove and nothing will ever show.
+    ///
+    /// Directory names are item UUIDs, so the check is a set membership test
+    /// against names that could not have been produced by anything else.
+    private func sweepOrphans() {
+        let known = Set(items.map(\.id.uuidString))
+        let contents = (try? FileManager.default.contentsOfDirectory(
+            at: directory,
+            includingPropertiesForKeys: [.isDirectoryKey],
+            options: [.skipsHiddenFiles]
+        )) ?? []
+
+        for entry in contents {
+            let name = entry.lastPathComponent
+            guard
+                (try? entry.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true,
+                UUID(uuidString: name) != nil,
+                !known.contains(name)
+            else { continue }
+
+            Log.shelf.info("sweeping orphaned shelf item \(name, privacy: .public)")
+            try? FileManager.default.removeItem(at: entry)
+        }
+    }
+
+    /// What the shelf is holding on disk, counted from the files rather than
+    /// from the index — the index records the size at the time of the copy, and
+    /// the point of this number is to be trustworthy.
+    var storedBytes: Int64 {
+        let contents = (try? FileManager.default.contentsOfDirectory(
+            at: directory,
+            includingPropertiesForKeys: [.totalFileAllocatedSizeKey],
+            options: [.skipsHiddenFiles]
+        )) ?? []
+
+        return contents.reduce(Int64(0)) { total, entry in
+            let sizes = FileManager.default.enumerator(
+                at: entry,
+                includingPropertiesForKeys: [.totalFileAllocatedSizeKey]
+            )?.compactMap { $0 as? URL }
+                .compactMap { try? $0.resourceValues(forKeys: [.totalFileAllocatedSizeKey]).totalFileAllocatedSize }
+                .reduce(0, +) ?? 0
+            return total + Int64(sizes)
+        }
     }
 
     // MARK: - Persistence

@@ -68,6 +68,15 @@ struct SettingsView: View {
     @State private var hud = HUDController.shared
     @State private var launchesAtLogin = LoginItem.isEnabled
     @State private var loginItemError: String?
+    /// Read once when the tab appears rather than on every redraw: it walks the
+    /// shelf directory, and a settings form re-renders on every keystroke.
+    @State private var shelfSize = "…"
+
+    private func refreshShelfSize() {
+        let store = (NSApp.delegate as? AppDelegate)?.shelfStore
+        let bytes = store?.storedBytes ?? 0
+        shelfSize = ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
+    }
 
     var body: some View {
         TabView {
@@ -76,6 +85,7 @@ struct SettingsView: View {
             behaviour
                 .tabItem { Label("동작", systemImage: "hand.tap") }
             features
+                .onAppear(perform: refreshShelfSize)
                 .tabItem { Label("기능", systemImage: "square.grid.2x2") }
             MotionLabView()
                 .tabItem { Label("모션 실험실", systemImage: "waveform.path") }
@@ -318,6 +328,12 @@ struct SettingsView: View {
 
                 Toggle("AirDrop으로 받은 파일 선반에 담기", isOn: $preferences.airDropToShelf)
                     .disabled(!preferences.shelfEnabled)
+
+                LabeledContent("보관 중인 용량") {
+                    Text(shelfSize)
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                }
             } footer: {
                 Text("끌어다 놓은 파일은 Dynamic 전용 폴더로 복사됩니다. 원본을 옮기거나 지워도 선반은 그대로 유지됩니다. AirDrop 수신은 macOS가 처리하며, 다운로드 폴더에 도착한 파일을 노치가 알려주고 선반에 함께 담아둡니다.")
                     .font(.caption)

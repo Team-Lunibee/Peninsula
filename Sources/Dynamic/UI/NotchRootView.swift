@@ -472,7 +472,9 @@ private struct PeekContentView: View {
         case .dropTarget:
             badge("arrow.down.circle.fill")
         case .info(let info):
-            badge(info.symbol, fill: info.tint)
+            if let symbol = info.symbol {
+                badge(symbol, fill: info.tint)
+            }
         case .level, nil:
             EmptyView()
         }
@@ -529,17 +531,51 @@ private struct PeekContentView: View {
                     enabled: model.morphsSpectrum
                 )
         case .info(let info):
-            if let value = info.trailingValue {
-                Text(value)
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
-                    .monospacedDigit()
-                    .contentTransition(.numericText())
-                    .contentTransition(.numericText())
-                    .foregroundStyle(info.tint)
+            HStack(spacing: 8) {
+                if let value = info.trailingValue {
+                    Text(value)
+                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .monospacedDigit()
+                        .contentTransition(.numericText())
+                        .foregroundStyle(info.tint)
+                }
+                if let level = info.level {
+                    BatteryGlyph(level: level, tint: info.tint)
+                }
             }
         case .filesAdded, .dropTarget, .level, nil:
             EmptyView()
         }
+    }
+}
+
+/// The battery the island draws next to a charge reading.
+///
+/// A real one, filled to the level, rather than an SF Symbol: the symbols
+/// quantise to a handful of steps and their outline reads as a different weight
+/// from the numeral beside it.
+private struct BatteryGlyph: View {
+    var level: Double
+    var tint: Color
+
+    var body: some View {
+        HStack(spacing: 1.5) {
+            RoundedRectangle(cornerRadius: 4.5, style: .continuous)
+                .fill(tint.opacity(0.26))
+                .frame(width: 26, height: 13)
+                .overlay(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 4.5, style: .continuous)
+                        .fill(tint)
+                        // Never narrower than its own corner radius, or a nearly
+                        // empty battery renders as a sliver with no shape.
+                        .frame(width: max(9, 26 * min(1, max(0, level))))
+                }
+            // The terminal. Dimmer than the body, the way the hardware glyph is.
+            RoundedRectangle(cornerRadius: 1, style: .continuous)
+                .fill(tint.opacity(0.45))
+                .frame(width: 2, height: 5)
+        }
+        .animation(Motion.content(Preferences.shared.motion), value: level)
     }
 }
 
