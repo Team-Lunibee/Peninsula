@@ -26,6 +26,11 @@ enum Bench {
             injectTrack(into: model.media)
         }
 
+        if let tab = ProcessInfo.processInfo.environment["DYNAMIC_BENCH_TAB"],
+           let selected = NotchTab(rawValue: tab) {
+            model.tab = selected
+        }
+
         switch mode {
         case "transitions": run(model: model, cycles: cycles, dwell: 0.9)
         case "tracks": runTrackStorm(model: model)
@@ -104,6 +109,18 @@ enum Bench {
                 while !Task.isCancelled {
                     model.expand()
                     try? await Task.sleep(for: .milliseconds(150))
+                }
+            }
+        // Opens once and leaves it open, so a settled panel can be measured for
+        // what it costs to just sit there.
+        case "open":
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(3))
+                controller?.holdOpenForBench()
+                model.expand()
+                for tick in 0..<8 {
+                    try? await Task.sleep(for: .seconds(5))
+                    note("open[\(tick)] \(String(describing: model.presentation)) settled=\(model.isSettled)")
                 }
             }
         // Drives the real screen-sleep notification through the real observer,

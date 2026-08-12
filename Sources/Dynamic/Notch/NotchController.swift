@@ -387,6 +387,13 @@ final class NotchController: NSObject {
     /// Whether the pointer is currently being polled. Read by the bench.
     var isPollingPointer: Bool { pointerTimer != nil }
 
+    /// Bench only. Lets the panel be measured sitting open without pinning the
+    /// cursor to the notch for the length of the run — the pointer would
+    /// otherwise close it the moment it is anywhere else.
+    func holdOpenForBench() {
+        stopPointerPolling()
+    }
+
     private func pollPointer() {
         let location = NSEvent.mouseLocation
         // Nothing to do when the cursor has not moved, which is most ticks.
