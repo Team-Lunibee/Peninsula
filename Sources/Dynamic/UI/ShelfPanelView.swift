@@ -58,6 +58,7 @@ struct ShelfPanelView: View {
     private var toolbar: some View {
         HStack(spacing: 12) {
             Text(summary)
+                .rasterisedText()
                 .font(.system(size: 10.5))
                 .foregroundStyle(.white.opacity(0.4))
 
@@ -103,9 +104,11 @@ struct ShelfPanelView: View {
                 .font(.system(size: 24, weight: .light))
                 .foregroundStyle(.white.opacity(0.35))
             Text("노치 위로 파일을 끌어다 놓으세요")
+                .rasterisedText()
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(.white.opacity(0.55))
             Text("\(Preferences.shared.shelfExpiryDays)일 동안 보관한 뒤 자동으로 정리됩니다")
+                .rasterisedText()
                 .font(.system(size: 10.5))
                 .foregroundStyle(.white.opacity(0.32))
         }
@@ -281,6 +284,7 @@ private struct ShelfTile: View {
             }
 
             Text(item.displayName)
+                .rasterisedText()
                 .font(.system(size: 9.5))
                 .foregroundStyle(.white.opacity(0.6))
                 .lineLimit(1)

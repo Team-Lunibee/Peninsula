@@ -27,6 +27,35 @@ struct IslandContentModifier: ViewModifier {
     }
 }
 
+extension View {
+    /// Draws text once, into a texture the panel's springs can then move.
+    ///
+    /// The notch lays its contents out at their final size and scales them onto
+    /// a container that is still growing. Scaling live text means SwiftUI
+    /// re-renders it at a new size on every frame, and CoreGraphics keeps a
+    /// glyph bitmap for every distinct size it is ever handed — a cache with no
+    /// eviction. Opening and closing the panel walked it up by roughly 0.2MB a
+    /// time, for as long as the app stayed running.
+    ///
+    /// Rasterising collapses that onto a single rendering: the glyphs are drawn
+    /// once, at the size they will settle at, and the animation transforms the
+    /// result.
+    ///
+    /// Applied to text rather than to the panel as a whole, which is the obvious
+    /// place and is wrong: nothing hosted from AppKit — the meter, the AirPlay
+    /// button — can be drawn into a rasterised group, and SwiftUI puts a
+    /// "cannot render" glyph where each one should be.
+    func rasterisedText() -> some View {
+        modifier(RasterisedText())
+    }
+}
+
+struct RasterisedText: ViewModifier {
+    func body(content: Content) -> some View {
+        content.drawingGroup(opaque: false)
+    }
+}
+
 /// Defocus alone, so it can run on a different clock from the fade.
 struct IslandBlurModifier: ViewModifier {
     var radius: CGFloat

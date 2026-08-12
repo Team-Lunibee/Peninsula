@@ -63,6 +63,7 @@ struct MediaPanelView: View {
                         .font(.system(size: 13))
                         .foregroundStyle(.white.opacity(0.55))
                         .lineLimit(1)
+                        .rasterisedText()
                 }
                 .transition(.blurFade(radius: 6))
             }
@@ -167,6 +168,7 @@ struct MediaPanelView: View {
             .font(.system(size: 11, weight: .medium))
             .monospacedDigit()
             .foregroundStyle(.white.opacity(0.5))
+            .rasterisedText()
         }
     }
 
@@ -264,6 +266,7 @@ struct MediaPanelView: View {
                 .foregroundStyle(.white.opacity(0.3))
                 .multilineTextAlignment(.center)
         }
+        .rasterisedText()
         .padding(.horizontal, 24)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -335,6 +338,7 @@ private struct LyricsStrip: View {
                     .lineLimit(1)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            .rasterisedText()
             .animation(Motion.transition(Preferences.shared.motion), value: index)
         }
     }

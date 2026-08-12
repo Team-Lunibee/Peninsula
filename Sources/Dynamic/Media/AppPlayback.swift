@@ -144,7 +144,10 @@ final class AppPlayback {
         pendingVolumeWrite = Task { [weak self] in
             try? await Task.sleep(for: .milliseconds(40))
             guard !Task.isCancelled, let value = self?.volume else { return }
-            Self.run(Self.volumeScript(app: app, value: Int((value * 100).rounded())))
+            // Not cached: the level is baked into the source, so caching would
+            // keep a compiled script — and the OSA component behind it — for
+            // every distinct volume the slider ever passed through.
+            Self.run(Self.volumeScript(app: app, value: Int((value * 100).rounded())), cache: false)
         }
     }
 
@@ -265,8 +268,8 @@ final class AppPlayback {
         """
     }
 
-    private static func run(_ source: String) {
-        ScriptRunner.shared.run(source) { _ in }
+    private static func run(_ source: String, cache: Bool = true) {
+        ScriptRunner.shared.run(source, cache: cache) { _ in }
     }
 }
 
@@ -281,20 +284,30 @@ final class AppPlayback {
 /// The queue is not an optimisation. `NSAppleScript` is documented as not
 /// thread-safe, and executing the same instance from two tasks at once is a
 /// crash waiting for a slow disk.
+///
+/// Caching is opt-out rather than automatic, because the cache is keyed on the
+/// source text. That is right for the scripts whose text is fixed — the reader
+/// on its timer, and the handful of shuffle and repeat variants — and wrong for
+/// any script with a value interpolated into it, which would deposit a fresh
+/// entry per distinct value and never drop one.
 final class ScriptRunner: @unchecked Sendable {
     static let shared = ScriptRunner()
 
     private let queue = DispatchQueue(label: "dev.anbam.Dynamic.applescript")
     private var compiled: [String: NSAppleScript] = [:]
 
-    func run(_ source: String, completion: @escaping @Sendable (String?) -> Void) {
+    func run(
+        _ source: String,
+        cache: Bool = true,
+        completion: @escaping @Sendable (String?) -> Void
+    ) {
         queue.async { [self] in
             let script: NSAppleScript?
-            if let existing = compiled[source] {
+            if cache, let existing = compiled[source] {
                 script = existing
             } else {
                 script = NSAppleScript(source: source)
-                if let script { compiled[source] = script }
+                if cache, let script { compiled[source] = script }
             }
 
             var error: NSDictionary?

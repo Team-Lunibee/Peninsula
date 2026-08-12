@@ -39,6 +39,7 @@ struct DevicesPanelView: View {
                     .frame(width: 20)
 
                 Text(device.name)
+                    .rasterisedText()
                     .font(.system(size: 12, weight: .semibold))
                     .lineLimit(1)
                     .foregroundStyle(.white.opacity(0.9))
@@ -110,9 +111,11 @@ struct DevicesPanelView: View {
                 .font(.system(size: 24, weight: .light))
                 .foregroundStyle(.white.opacity(0.35))
             Text("연결된 기기 없음")
+                .rasterisedText()
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(.white.opacity(0.55))
             Text("배터리를 보고하는 기기만 표시됩니다")
+                .rasterisedText()
                 .font(.system(size: 10.5))
                 .foregroundStyle(.white.opacity(0.32))
         }

@@ -39,6 +39,9 @@ struct MarqueeText: View {
             .font(font)
             .lineLimit(1)
             .fixedSize()
+            // Inside the offset, not outside it: the scroll then moves a
+            // texture rather than redrawing the title every frame.
+            .rasterisedText()
             .background(
                 GeometryReader { proxy in
                     Color.clear.onAppear { textWidth = proxy.size.width }

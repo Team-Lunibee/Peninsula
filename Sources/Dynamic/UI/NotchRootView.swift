@@ -341,6 +341,7 @@ private struct CompactContentView: View {
                     .font(.system(size: 10, weight: .semibold, design: .rounded))
                     .foregroundStyle(.white.opacity(0.85))
                     .monospacedDigit()
+                    .rasterisedText()
             }
         case .plain:
             EmptyView()
@@ -399,6 +400,7 @@ private struct PeekContentView: View {
                 // treatment for a number changing under you.
                 .contentTransition(.numericText(value: info.value * 100))
                 .foregroundStyle(.white.opacity(0.8))
+                .rasterisedText()
                 .frame(width: model.peekSideWidth, alignment: .trailing)
         }
         .padding(.horizontal, 18)
@@ -423,6 +425,7 @@ private struct PeekContentView: View {
                     .truncationMode(.tail)
                     .id(title)
                     .transition(.blurFade(radius: 5))
+                    .rasterisedText()
             }
             .frame(width: model.peekSideWidth, alignment: .leading)
 
@@ -437,6 +440,7 @@ private struct PeekContentView: View {
                         .truncationMode(.middle)
                         .id(subtitle)
                         .transition(.blurFade(radius: 5))
+                        .rasterisedText()
                 }
                 trailing
             }
@@ -538,6 +542,7 @@ private struct PeekContentView: View {
                         .monospacedDigit()
                         .contentTransition(.numericText())
                         .foregroundStyle(info.tint)
+                        .rasterisedText()
                 }
                 if let level = info.level {
                     BatteryGlyph(level: level, tint: info.tint)
@@ -639,6 +644,7 @@ private struct ExpandedContentView: View {
                         .foregroundStyle(.white.opacity(0.4))
                         .lineLimit(1)
                         .transition(.blurFade(radius: 4))
+                        .rasterisedText()
                 }
 
                 // Shown whenever lyrics *could* apply, not only once they have
@@ -719,6 +725,7 @@ private struct ExpandedContentView: View {
                     Text(tab.label)
                         .font(.system(size: 11.5, weight: .medium))
                         .fixedSize()
+                        .rasterisedText()
                 }
                 if tab == .shelf, !model.shelf.isEmpty {
                     Text("\(model.shelf.items.count)")
@@ -785,6 +792,7 @@ private struct CompactLyricLine: View {
                 .truncationMode(.tail)
                 .id(line)
                 .transition(.blurFade(radius: 5))
+                .rasterisedText()
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .animation(Motion.transition(Preferences.shared.motion), value: line)
         }
