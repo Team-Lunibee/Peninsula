@@ -18,6 +18,12 @@ struct NowPlaying: Equatable {
     var shuffleMode: Int?
     var repeatMode: Int?
 
+    /// What the source says it is playing, where it says anything. Music and
+    /// Spotify fill these in; a browser leaves both empty, whatever is in the
+    /// tab.
+    var mediaType: String?
+    var isMusicApp: Bool?
+
     /// Identity of the currently loaded artwork, used to avoid re-decoding the
     /// same several-hundred-kilobyte JPEG on every update.
     var artworkFingerprint: String?
@@ -116,6 +122,8 @@ struct NowPlayingAccumulator {
             supportsIsLiked: raw["supportsIsLiked"] as? Bool ?? false,
             shuffleMode: Self.int64(raw["shuffleMode"]).map(Int.init),
             repeatMode: Self.int64(raw["repeatMode"]).map(Int.init),
+            mediaType: raw["mediaType"] as? String,
+            isMusicApp: raw["isMusicApp"] as? Bool,
             artworkFingerprint: Self.fingerprint(of: artworkData) ?? retainedArtworkFingerprint
         )
     }

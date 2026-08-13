@@ -40,6 +40,12 @@ final class MediaEngine {
     private var bridge: MediaRemoteBridge?
     private var accumulator = NowPlayingAccumulator()
     private var loadedArtworkFingerprint: String?
+    /// Which track the image in `artwork` actually belongs to.
+    ///
+    /// Distinct from `loadedArtworkFingerprint`, which is set when a decode is
+    /// *started*. Between the two the property still holds the previous track's
+    /// cover, and anything judging the new track by it judges the wrong image.
+    private var shownArtworkFingerprint: String?
     private var artworkTask: Task<Void, Never>?
 
     var isPlaying: Bool { nowPlaying?.isPlaying ?? false }
@@ -203,6 +209,7 @@ final class MediaEngine {
         sourceName = nil
         AppPlayback.shared.stop()
         loadedArtworkFingerprint = nil
+        shownArtworkFingerprint = nil
         artworkTask?.cancel()
         artworkTask = nil
         lyrics.reset()
@@ -212,6 +219,51 @@ final class MediaEngine {
     /// for an answer that cannot change while the app is running, and because a
     /// player that flickers in and out of "nothing playing" asks for the same
     /// one repeatedly.
+    /// Whether what is playing is music rather than a video.
+    ///
+    /// There is no single field that says so. MediaRemote carries a media type,
+    /// and Music fills it in — but a browser sets none of it, and a browser is
+    /// where the question actually matters: scrolling Shorts is a track change
+    /// every couple of seconds as far as the system is concerned, and the island
+    /// announcing each one is the reason this exists.
+    ///
+    /// So it is decided from what a music player fills in and a video does not,
+    /// in descending order of how much the source is telling us about itself:
+    ///
+    ///     Music.app     isMusicApp=true   mediaType=…Music   album="STEREOTYPE - EP"   artwork 600x600
+    ///     YouTube       isMusicApp=nil    mediaType=nil      album=""                  artwork 150x83
+    ///     YouTube Short  same, 49s
+    ///
+    /// The artwork is the last word and the most telling: cover art is square
+    /// and a video thumbnail is 16:9. It comes in last, though — the image is
+    /// decoded off the main actor — so the cheaper fields are asked first and
+    /// this only settles the cases they cannot.
+    ///
+    /// Anything unrecognised is treated as video, which is the safe direction:
+    /// the cost of being wrong is a banner that does not appear, against one
+    /// that interrupts.
+    var looksLikeMusic: Bool {
+        guard let track = nowPlaying else { return false }
+        if track.isMusicApp == true { return true }
+        if let type = track.mediaType,
+           type.localizedCaseInsensitiveContains("music")
+            || type.localizedCaseInsensitiveContains("audio") {
+            return true
+        }
+        // A browser leaves the album empty whatever is in the tab.
+        if track.album != nil { return true }
+        // Only when the image on hand is this track's. Artwork is decoded off
+        // the main actor and lands a moment after the metadata, so at the
+        // instant a track changes `artwork` still holds the *previous* one —
+        // and going from an album to a video would be judged on the album's
+        // square cover and announced as music.
+        if track.artworkFingerprint == shownArtworkFingerprint,
+           let artwork, artwork.size.width > 0, artwork.size.height > 0 {
+            return abs(artwork.size.width / artwork.size.height - 1) < 0.12
+        }
+        return false
+    }
+
     private var sourceCache: [String: (icon: NSImage?, name: String?)] = [:]
 
     private func updateSource(bundleIdentifier: String) {
@@ -241,6 +293,7 @@ final class MediaEngine {
 
         guard let base64, !base64.isEmpty else {
             artwork = nil
+            shownArtworkFingerprint = nil
             accent = .white
             return
         }
@@ -256,11 +309,13 @@ final class MediaEngine {
             guard !Task.isCancelled, let self else { return }
             guard let decoded else {
                 self.artwork = nil
+                self.shownArtworkFingerprint = nil
                 self.accent = .white
                 return
             }
 
             self.artwork = decoded.0
+            self.shownArtworkFingerprint = fingerprint
             self.accent = decoded.1.map { Color(nsColor: $0) } ?? .white
         }
     }

@@ -263,6 +263,11 @@ final class NotchController: NSObject {
                 // started — including the relaunch after every build.
                 guard Date().timeIntervalSince(self.startedAt) > Self.launchGrace else { return }
 
+                // A video is not news. Every Short scrolled past is a track
+                // change to MediaRemote, and announcing those turned the island
+                // into a thing that opens while you are watching something.
+                guard self.media.looksLikeMusic else { return }
+
                 self.model.present(.trackChanged)
             }
         )

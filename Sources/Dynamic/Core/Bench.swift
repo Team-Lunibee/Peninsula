@@ -150,6 +150,121 @@ enum Bench {
                 try? await Task.sleep(for: .seconds(2))
                 report("session back  ")
             }
+        // Feeds the classifier the exact payload shapes the adapter was
+        // observed producing, so "video is not announced" is checked rather
+        // than assumed.
+        case "classify":
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(3))
+                let now = Int64(Date().timeIntervalSince1970 * 1_000_000)
+                let cases: [(String, Bool, [String: Any])] = [
+                    ("Music.app             ", true, [
+                        "bundleIdentifier": "com.apple.Music", "title": "색안경",
+                        "artist": "STAYC", "album": "STEREOTYPE - EP", "playing": true,
+                        "mediaType": "MRMediaRemoteMediaTypeMusic", "isMusicApp": true,
+                        "artworkData": artworkBase64(width: 600, height: 600),
+                    ]),
+                    ("Spotify (no mediaType)", true, [
+                        "bundleIdentifier": "com.spotify.client", "title": "Track",
+                        "artist": "Artist", "album": "An Album", "playing": true,
+                        "artworkData": artworkBase64(width: 640, height: 640),
+                    ]),
+                    ("YouTube video         ", false, [
+                        "bundleIdentifier": "com.google.Chrome",
+                        "title": "캐리비안베이보다 강력한 워터파크?",
+                        "artist": "", "album": "", "playing": true,
+                        "artworkData": artworkBase64(width: 480, height: 270),
+                    ]),
+                    ("YouTube Short         ", false, [
+                        "bundleIdentifier": "com.google.Chrome",
+                        "title": "피아노가 들리는 승헌쓰의 도레미 챌린지",
+                        "artist": "Sofa4844", "album": "", "playing": true,
+                        "durationMicros": 49_561_000,
+                        "artworkData": artworkBase64(width: 150, height: 83),
+                    ]),
+                    ("browser, no artwork   ", false, [
+                        "bundleIdentifier": "com.google.Chrome", "title": "야스오 1대1",
+                        "artist": "", "album": "", "playing": true,
+                    ]),
+                ]
+
+                var failures = 0
+                for (label, expected, payload) in cases {
+                    var full = payload
+                    full["timestampEpochMicros"] = now
+                    model.media.ingestForBench(full)
+                    // The artwork is decoded off the main actor; give it a beat.
+                    try? await Task.sleep(for: .milliseconds(900))
+                    let got = model.media.looksLikeMusic
+                    if got != expected { failures += 1 }
+                    note("classify: \(label) music=\(got) want=\(expected) \(got == expected ? "ok" : "FAIL")")
+                }
+                note("classify: \(failures == 0 ? "all passed" : "\(failures) FAILED")")
+            }
+        // End to end: does a track change actually reach the island, and does a
+        // video actually fail to.
+        case "banner":
+            Task { @MainActor in
+                let now = Int64(Date().timeIntervalSince1970 * 1_000_000)
+                @MainActor func play(_ title: String, video: Bool) {
+                    var payload: [String: Any] = [
+                        "bundleIdentifier": video ? "com.google.Chrome" : "com.apple.Music",
+                        "title": title, "playing": true, "timestampEpochMicros": now,
+                        "artworkData": video
+                            ? artworkBase64(width: 480, height: 270)
+                            : artworkBase64(width: 600, height: 600),
+                    ]
+                    if !video {
+                        payload["artist"] = "Artist"
+                        payload["album"] = "An Album"
+                        payload["isMusicApp"] = true
+                    } else {
+                        payload["artist"] = "Channel"
+                        payload["album"] = ""
+                    }
+                    model.media.ingestForBench(payload)
+                }
+                /// Highest presentation reached over the next couple of seconds.
+                @MainActor func watch() async -> String {
+                    var seen = "idle"
+                    for _ in 0..<20 {
+                        try? await Task.sleep(for: .milliseconds(100))
+                        if model.presentation == .peek { seen = "peek" }
+                        else if model.presentation == .expanded { seen = "expanded" }
+                    }
+                    return seen
+                }
+                /// Waits out any banner still on screen, so the next reading is
+                /// this change's and not the previous one's tail.
+                @MainActor func quiet() async {
+                    for _ in 0..<80 {
+                        if model.presentation != .peek, model.presentation != .expanded { return }
+                        try? await Task.sleep(for: .milliseconds(250))
+                    }
+                }
+
+                // Past the launch grace, or nothing is treated as news.
+                try? await Task.sleep(for: .seconds(5))
+
+                play("Music One", video: false)
+                _ = await watch(); await quiet()
+                play("Music Two", video: false)
+                note("banner: music -> music        \(await watch())   (want peek)")
+                await quiet()
+
+                // The interesting one: leaving music for a video, when the
+                // artwork on hand is still the album's.
+                play("Short One", video: true)
+                note("banner: music -> video        \(await watch())   (want idle)")
+                await quiet()
+
+                play("Short Two", video: true)
+                note("banner: video -> video        \(await watch())   (want idle)")
+                await quiet()
+
+                play("Music Three", video: false)
+                note("banner: video -> music        \(await watch())   (want peek)")
+            }
         case "peek":
             Task { @MainActor in
                 try? await Task.sleep(for: .seconds(3))
@@ -184,14 +299,13 @@ enum Bench {
     /// materialise a Retina-backed rep plus a TIFF plus a bitmap rep — around
     /// 100MB of transient allocation that then shows up in
     /// `phys_footprint_peak` and gets mistaken for the app's own cost.
-    private static func artworkBase64() -> String {
-        let edge = 512
+    private static func artworkBase64(width: Int = 512, height: Int = 512) -> String {
         guard let context = CGContext(
             data: nil,
-            width: edge,
-            height: edge,
+            width: width,
+            height: height,
             bitsPerComponent: 8,
-            bytesPerRow: edge * 4,
+            bytesPerRow: width * 4,
             space: CGColorSpaceCreateDeviceRGB(),
             bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
         ) else { return "" }
@@ -207,7 +321,7 @@ enum Bench {
             context.drawLinearGradient(
                 gradient,
                 start: .zero,
-                end: CGPoint(x: edge, y: edge),
+                end: CGPoint(x: width, y: height),
                 options: []
             )
         }
