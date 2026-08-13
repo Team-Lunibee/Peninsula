@@ -18,6 +18,8 @@ final class NotchController: NSObject {
     private var dropSettleTask: Task<Void, Never>?
     private var observers: [Task<Void, Never>] = []
     private var lastTrackToken = 0
+    private var heldAnnouncement: Int?
+    private var heldAnnouncementTask: Task<Void, Never>?
     private let startedAt = Date()
 
     let model: NotchViewModel
@@ -70,6 +72,7 @@ final class NotchController: NSObject {
 
     func stop() {
         hoverTask?.cancel()
+        heldAnnouncementTask?.cancel()
         dropSettleTask?.cancel()
         observers.forEach { $0.cancel() }
         observers.removeAll()
@@ -245,33 +248,79 @@ final class NotchController: NSObject {
         observers.append(
             observeChanges { [weak self] in
                 _ = self?.media.trackToken
+                _ = self?.media.isPlaying
             } onChange: { [weak self] in
                 guard let self else { return }
                 let token = self.media.trackToken
-                defer { self.lastTrackToken = token }
 
-                guard token != self.lastTrackToken,
-                      self.preferences.mediaEnabled,
-                      self.media.hasTrack
-                else { return }
+                // Playback starting counts, even though the track did not
+                // change — see `holdAnnouncement`.
+                if token == self.lastTrackToken {
+                    guard self.heldAnnouncement == token, self.media.isPlaying else { return }
+                    self.heldAnnouncement = nil
+                    self.announceTrack()
+                    return
+                }
+                self.lastTrackToken = token
 
-                // Whatever is already playing is not a change.
-                //
-                // The adapter reports the current item as soon as it connects,
-                // which is a second or two after launch, and announcing that
-                // meant the island popped open every single time the app
-                // started — including the relaunch after every build.
-                guard Date().timeIntervalSince(self.startedAt) > Self.launchGrace else { return }
+                guard self.preferences.mediaEnabled, self.media.hasTrack else { return }
 
                 // A video is not news. Every Short scrolled past is a track
                 // change to MediaRemote, and announcing those turned the island
                 // into a thing that opens while you are watching something.
-                guard self.media.looksLikeMusic else { return }
+                guard self.media.looksLikeMusic else {
+                    self.heldAnnouncement = nil
+                    return
+                }
 
-                self.model.present(.trackChanged)
+                // Nor is a track that is not playing.
+                //
+                // Closing a YouTube tab hands now-playing back to whatever the
+                // Music app still has loaded, which arrives here as a change of
+                // track — new title, new bundle, everything. Nothing started
+                // playing; a video stopped. Announcing it opened the island
+                // every time a video ended, which is what this guard is for.
+                guard self.media.isPlaying else {
+                    self.holdAnnouncement(token)
+                    return
+                }
+
+                self.heldAnnouncement = nil
+                self.announceTrack()
             }
         )
     }
+
+    /// Whatever is already playing is not a change.
+    ///
+    /// The adapter reports the current item as soon as it connects, which is a
+    /// second or two after launch, and announcing that meant the island popped
+    /// open every single time the app started — including the relaunch after
+    /// every build.
+    private func announceTrack() {
+        guard Date().timeIntervalSince(startedAt) > Self.launchGrace else { return }
+        model.present(.trackChanged)
+    }
+
+    /// Remembers a track that arrived stopped, in case it is about to start.
+    ///
+    /// Pressing play on a stopped player can report the track before it reports
+    /// the playing state, and dropping those outright would lose the one
+    /// announcement most worth making. So the change is held briefly instead: if
+    /// playback starts while it is still held, it is announced then. A track
+    /// merely uncovered by something else stopping never starts, and the hold
+    /// lapses.
+    private func holdAnnouncement(_ token: Int) {
+        heldAnnouncement = token
+        heldAnnouncementTask?.cancel()
+        heldAnnouncementTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(Self.announcementHold))
+            guard !Task.isCancelled, let self, self.heldAnnouncement == token else { return }
+            self.heldAnnouncement = nil
+        }
+    }
+
+    private static let announcementHold: TimeInterval = 1.5
 
     /// How long after launch a track change is treated as the initial state
     /// rather than as news.

@@ -206,10 +206,10 @@ enum Bench {
         case "banner":
             Task { @MainActor in
                 let now = Int64(Date().timeIntervalSince1970 * 1_000_000)
-                @MainActor func play(_ title: String, video: Bool) {
+                @MainActor func play(_ title: String, video: Bool, playing: Bool = true) {
                     var payload: [String: Any] = [
                         "bundleIdentifier": video ? "com.google.Chrome" : "com.apple.Music",
-                        "title": title, "playing": true, "timestampEpochMicros": now,
+                        "title": title, "playing": playing, "timestampEpochMicros": now,
                         "artworkData": video
                             ? artworkBase64(width: 480, height: 270)
                             : artworkBase64(width: 600, height: 600),
@@ -264,6 +264,23 @@ enum Bench {
 
                 play("Music Three", video: false)
                 note("banner: video -> music        \(await watch())   (want peek)")
+                await quiet()
+
+                // The reported annoyance: a video ends and MediaRemote hands
+                // now-playing back to a Music app that has been paused all
+                // along. Nothing started; something stopped.
+                play("Short Four", video: true)
+                await quiet()
+                play("Paused Song", video: false, playing: false)
+                note("banner: video ends, paused    \(await watch())   (want idle)")
+                await quiet()
+
+                // A track that arrives stopped and starts a moment later is a
+                // real start, and must survive the guard above.
+                play("Fresh Song", video: false, playing: false)
+                try? await Task.sleep(for: .milliseconds(400))
+                play("Fresh Song", video: false, playing: true)
+                note("banner: stopped then starts   \(await watch())   (want peek)")
             }
         case "peek":
             Task { @MainActor in
