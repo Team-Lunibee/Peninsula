@@ -327,10 +327,71 @@ enum Bench {
                 try? await Task.sleep(for: .seconds(2))
                 note("shelf: after opening   \(onScreen())   (want first | third)")
 
-                try? await Task.sleep(for: .seconds(6))
+                // Held open long enough to be looked at. `expand()` is a no-op
+                // when it is already open, so this only undoes a collapse the
+                // tracking area asked for.
+                for _ in 0..<30 {
+                    model.expand()
+                    try? await Task.sleep(for: .milliseconds(500))
+                }
                 shelf.removeAll()
                 try? FileManager.default.removeItem(at: temp)
                 note("shelf: cleaned up, items=\(shelf.items.count)")
+            }
+        // Fills the shelf to its cap and reports what holding that many tiles
+        // actually costs, rather than reasoning about it from the thumbnail
+        // dimensions.
+        case "shelffill":
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(3))
+                let count = ProcessInfo.processInfo.environment["DYNAMIC_BENCH_SHELF_N"]
+                    .flatMap(Int.init) ?? 120
+                let shelf = model.shelf
+                let temp = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("dynamic-bench-fill", isDirectory: true)
+                try? FileManager.default.removeItem(at: temp)
+                try? FileManager.default.createDirectory(at: temp, withIntermediateDirectories: true)
+
+                @MainActor func footprintMB() -> Int {
+                    var info = task_vm_info_data_t()
+                    var size = mach_msg_type_number_t(
+                        MemoryLayout<task_vm_info_data_t>.size / MemoryLayout<natural_t>.size
+                    )
+                    let ok = withUnsafeMutablePointer(to: &info) {
+                        $0.withMemoryRebound(to: integer_t.self, capacity: Int(size)) {
+                            task_info(mach_task_self_, task_flavor_t(TASK_VM_INFO), $0, &size)
+                        }
+                    }
+                    return ok == KERN_SUCCESS ? Int(info.phys_footprint) / 1_048_576 : -1
+                }
+
+                note("shelffill: empty                 \(footprintMB())MB")
+
+                // Small files: this measures what the *shelf* costs to hold and
+                // draw, not what the copies weigh.
+                var urls: [URL] = []
+                for index in 0..<count {
+                    let url = temp.appendingPathComponent(String(format: "file-%03d.txt", index))
+                    try? Data("contents \(index)".utf8).write(to: url)
+                    urls.append(url)
+                }
+                shelf.add(contentsOf: urls)
+                try? await Task.sleep(for: .seconds(2))
+                note("shelffill: \(shelf.items.count) items indexed     \(footprintMB())MB")
+
+                controller?.holdOpenForBench()
+                model.tab = .shelf
+                for tick in 0..<14 {
+                    model.expand()
+                    try? await Task.sleep(for: .seconds(1))
+                    if tick == 6 { note("shelffill: panel open, drawn     \(footprintMB())MB") }
+                }
+                note("shelffill: after scrolling none  \(footprintMB())MB   thumbnails held")
+
+                shelf.removeAll()
+                try? FileManager.default.removeItem(at: temp)
+                try? await Task.sleep(for: .seconds(3))
+                note("shelffill: cleared               \(footprintMB())MB   items=\(shelf.items.count)")
             }
         case "peek":
             Task { @MainActor in

@@ -33,35 +33,54 @@ struct ShelfPanelView: View {
         .animation(Motion.transition(Preferences.shared.motion), value: shelf.isEmpty)
     }
 
-    /// Oldest on the left, newest on the right.
+    /// The row starts at the left and grows rightwards, newest last.
     ///
     /// The store keeps the newest first, which is the right shape for the data
     /// — expiry and re-drop promotion both work from the front — but the wrong
-    /// one to read. A row that grows rightwards matches how a shelf fills up,
-    /// and puts the file just dropped where the eye already is, next to the
-    /// pointer that dropped it.
+    /// one to read. A shelf fills up the way a shelf does, and the file just
+    /// dropped lands where the pointer that dropped it already is.
+    ///
+    /// Left-aligned, not right-aligned: a horizontal `ScrollView` places
+    /// content shorter than itself wherever its scroll anchor says, so anchoring
+    /// to the trailing edge stacked two or three tiles against the right-hand
+    /// side with a gulf of nothing beside them. Filling the width and aligning
+    /// the contents leading keeps them where they belong; the scroll only has
+    /// anywhere to go once there are enough tiles to overflow.
     private var items: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 14) {
-                ForEach(shelf.items.reversed()) { item in
-                    ShelfTile(item: item, model: model)
-                        .transition(
-                            .asymmetric(
-                                insertion: .blurFade(radius: 10)
-                                    .combined(with: .scale(scale: 0.7, anchor: .top))
-                                    .combined(with: .offset(y: -14)),
-                                removal: .blurFade(radius: 6)
-                                    .combined(with: .scale(scale: 0.8))
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                // Lazy, because a plain `HStack` builds every tile the shelf
+                // holds whether or not it is on screen — and building a tile
+                // asks QuickLook for a thumbnail. Seven fit across the panel;
+                // the rest can wait until they are scrolled to.
+                LazyHStack(spacing: 14) {
+                    ForEach(shelf.items.reversed()) { item in
+                        ShelfTile(item: item, model: model)
+                            .transition(
+                                .asymmetric(
+                                    insertion: .blurFade(radius: 10)
+                                        .combined(with: .scale(scale: 0.7, anchor: .top))
+                                        .combined(with: .offset(y: -14)),
+                                    removal: .blurFade(radius: 6)
+                                        .combined(with: .scale(scale: 0.8))
+                                )
                             )
-                        )
+                    }
+                }
+                .padding(.horizontal, 3)
+                .padding(.vertical, 3)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            // Once it does overflow, follow the newest tile out to the right,
+            // or a drop onto a full shelf lands off-screen and reads as having
+            // done nothing. `items.first` is the newest — the store's order.
+            .onChange(of: shelf.items.first?.id) { _, newest in
+                guard let newest else { return }
+                withAnimation(Motion.transition(Preferences.shared.motion)) {
+                    proxy.scrollTo(newest, anchor: .trailing)
                 }
             }
-            .padding(.horizontal, 3)
-            .padding(.vertical, 3)
         }
-        // Pinned to the newest end, or a drop onto a full shelf would land
-        // off-screen and read as having done nothing.
-        .defaultScrollAnchor(.trailing)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
