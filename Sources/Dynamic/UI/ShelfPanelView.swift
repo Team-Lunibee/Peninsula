@@ -33,10 +33,17 @@ struct ShelfPanelView: View {
         .animation(Motion.transition(Preferences.shared.motion), value: shelf.isEmpty)
     }
 
+    /// Oldest on the left, newest on the right.
+    ///
+    /// The store keeps the newest first, which is the right shape for the data
+    /// — expiry and re-drop promotion both work from the front — but the wrong
+    /// one to read. A row that grows rightwards matches how a shelf fills up,
+    /// and puts the file just dropped where the eye already is, next to the
+    /// pointer that dropped it.
     private var items: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 14) {
-                ForEach(shelf.items) { item in
+                ForEach(shelf.items.reversed()) { item in
                     ShelfTile(item: item, model: model)
                         .transition(
                             .asymmetric(
@@ -52,6 +59,9 @@ struct ShelfPanelView: View {
             .padding(.horizontal, 3)
             .padding(.vertical, 3)
         }
+        // Pinned to the newest end, or a drop onto a full shelf would land
+        // off-screen and read as having done nothing.
+        .defaultScrollAnchor(.trailing)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 

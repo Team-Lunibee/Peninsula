@@ -282,6 +282,56 @@ enum Bench {
                 play("Fresh Song", video: false, playing: true)
                 note("banner: stopped then starts   \(await watch())   (want peek)")
             }
+        // Drops real files onto the shelf, checks which way the row runs, then
+        // deletes one behind the app's back and checks it goes.
+        case "shelf":
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(3))
+                let shelf = model.shelf
+                let temp = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("dynamic-bench-shelf", isDirectory: true)
+                try? FileManager.default.createDirectory(at: temp, withIntermediateDirectories: true)
+
+                var sources: [URL] = []
+                for name in ["first.txt", "second.txt", "third.txt"] {
+                    let url = temp.appendingPathComponent(name)
+                    try? Data("\(name) contents".utf8).write(to: url)
+                    sources.append(url)
+                    // One at a time, so "newest" is unambiguous.
+                    shelf.add(contentsOf: [url])
+                    try? await Task.sleep(for: .milliseconds(400))
+                }
+
+                /// What the row reads, left to right — the view renders the
+                /// store reversed.
+                @MainActor func onScreen() -> String {
+                    shelf.items.reversed().map(\.displayName).joined(separator: " | ")
+                }
+                note("shelf: dropped first, second, third")
+                note("shelf: left-to-right  \(onScreen())   (want first | second | third)")
+
+                // Delete the middle one's backing file, the way a person with a
+                // Finder window would.
+                guard let middle = shelf.items.first(where: { $0.storedFilename.hasPrefix("second") }) else {
+                    note("shelf: could not find the middle item"); return
+                }
+                let backing = shelf.url(for: middle)
+                try? FileManager.default.removeItem(at: backing)
+                note("shelf: deleted \(backing.lastPathComponent) from disk")
+                note("shelf: before opening  \(onScreen())   (still shows it)")
+
+                // Opening the panel is what re-checks.
+                controller?.holdOpenForBench()
+                model.tab = .shelf
+                model.expand()
+                try? await Task.sleep(for: .seconds(2))
+                note("shelf: after opening   \(onScreen())   (want first | third)")
+
+                try? await Task.sleep(for: .seconds(6))
+                shelf.removeAll()
+                try? FileManager.default.removeItem(at: temp)
+                note("shelf: cleaned up, items=\(shelf.items.count)")
+            }
         case "peek":
             Task { @MainActor in
                 try? await Task.sleep(for: .seconds(3))

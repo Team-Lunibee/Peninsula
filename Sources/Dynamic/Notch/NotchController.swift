@@ -225,6 +225,11 @@ final class NotchController: NSObject {
                 AppPlayback.shared.setVisible(isOpen)
                 if isOpen {
                     self.bluetooth.refresh()
+                    // The shelf keeps copies, and a copy can be thrown away
+                    // behind the app's back. Re-checking on the way open costs
+                    // one `stat` per item and means a tile never outlives the
+                    // file it stands for by longer than it takes to look.
+                    self.shelf.prune()
                 }
             }
         )
