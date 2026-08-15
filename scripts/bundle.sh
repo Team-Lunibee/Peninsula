@@ -41,15 +41,13 @@ cp "$ADAPTER/mediaremote-adapter.pl" "$APP/Contents/Resources/"
 cp "$ADAPTER/LICENSE-mediaremote-adapter" "$APP/Contents/Resources/"
 
 # Sign inner code before the bundle that contains it.
-# Ad-hoc signing changes the code signature on every build, and macOS keys
-# privacy grants (Downloads, Desktop, Accessibility) to that signature — so a
-# rebuild silently revokes them and folder watching goes quiet. Set
-# SIGN_IDENTITY to a real certificate to keep permissions across builds:
-#   SIGN_IDENTITY="Apple Development: you@example.com" ./scripts/bundle.sh
+#
 # Prefer a real certificate automatically. Ad-hoc signatures change on every
 # build, and macOS keys privacy grants (Accessibility, Downloads, Desktop) to
 # the signature — so an ad-hoc rebuild silently revokes everything the user
 # granted, while the stale entry stays in System Settings looking enabled.
+# Pin one explicitly with:
+#   SIGN_IDENTITY="Apple Development: you@example.com" ./scripts/bundle.sh
 if [ -z "${SIGN_IDENTITY:-}" ]; then
     SIGN_IDENTITY="$(security find-identity -v -p codesigning 2>/dev/null \
         | sed -n 's/.*"\(.*\)"/\1/p' | head -1)"
@@ -62,10 +60,21 @@ else
     echo "    signing as $IDENTITY"
 fi
 
-codesign --force --sign "$IDENTITY" --timestamp=none \
+# A secure timestamp, not --timestamp=none: notarisation rejects any signature
+# without one, and it costs a single request to Apple's timestamp server. An
+# ad-hoc signature cannot carry a timestamp at all, so it keeps the old flag —
+# which also keeps the dev loop working with no network.
+TIMESTAMP=(--timestamp)
+[ "$IDENTITY" = "-" ] && TIMESTAMP=(--timestamp=none)
+
+# The hardened runtime goes on the framework as well as the app. Notarisation
+# checks every Mach-O in the bundle, not just the main executable, and rejects
+# the submission if any of them lacks the runtime flag.
+codesign --force --sign "$IDENTITY" "${TIMESTAMP[@]}" \
+    --options runtime \
     "$APP/Contents/Resources/MediaRemoteAdapter.framework" >/dev/null
 
-codesign --force --sign "$IDENTITY" --timestamp=none \
+codesign --force --sign "$IDENTITY" "${TIMESTAMP[@]}" \
     --options runtime \
     --entitlements "$ROOT/Resources/Dynamic.entitlements" \
     "$APP" >/dev/null
