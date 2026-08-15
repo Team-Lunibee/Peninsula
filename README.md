@@ -2,13 +2,33 @@
 
 맥북 노치를 다이나믹 아일랜드로 만드는 macOS 앱. SwiftUI + AppKit, 외부 의존성 없음.
 
+**상주 CPU 0.05% · 메모리 14MB · 스레드 3개** — 전부 실측이고, [아래](#성능)에 어떻게 거기까지 갔는지 적어 뒀습니다.
+
+> ### 받기 전에 알아두세요
+>
+> macOS는 다른 앱의 재생 정보를 공개 API로 주지 않습니다. 이 앱은 아직 권한이 남아 있는 시스템 perl을 통해 **비공개 MediaRemote 프레임워크**를 읽습니다 ([자세히](#알아둘-것)).
+>
+> **Apple이 어느 macOS 업데이트에서든 이 경로를 막을 수 있습니다.** 막히면 앱은 조용히 죽는 대신 노치에 그 사실을 표시하지만, 재생 관련 기능은 거기서 끝입니다. 같은 이유로 이 앱은 **App Store에 올릴 수 없습니다** — 앞으로도 못 올립니다.
+>
+> 나머지(선반, AirDrop, 기기 배터리, HUD 대체, 라이브 알림)는 전부 공개 API라 영향받지 않습니다.
+
+---
+
+## 설치
+
+macOS 14 (Sonoma) 이상 · 노치가 있는 MacBook.
+
+[릴리스](https://github.com/RHbox/peninsula/releases)에서 zip을 받아 풀고 **응용 프로그램** 폴더로 옮기세요. Developer ID 서명에 Apple 공증까지 받았으므로 경고 없이 열립니다.
+
+**자동 실행은 응용 프로그램 폴더로 옮긴 뒤에 켜세요.** 경로로 등록되기 때문입니다.
+
+### 소스에서 빌드
+
 ```bash
 ./scripts/bundle.sh release && open build/Dynamic.app
 ```
 
 첫 빌드에서 [mediaremote-adapter](https://github.com/ungive/mediaremote-adapter)(BSD-3)를 자동으로 받아 프레임워크로 빌드합니다. cmake는 필요 없습니다.
-
-**유휴 CPU 0.1% · 메모리 18MB** — 전부 실측이고, 아래에 어떻게 거기까지 갔는지 적어 뒀습니다.
 
 ---
 
@@ -89,10 +109,13 @@ Apple이 WWDC23에서 정한 표기(`duration` + `bounce`)를 그대로 씁니�
 
 | | 이전 | 지금 |
 |---|---|---|
-| 유휴 CPU | 4.2% | **0.03%** |
-| 메모리 (physical footprint) | 57MB | **20MB** |
-| 메모리 peak | 135MB | **20MB** |
+| 유휴 CPU | 4.2% | **0.05%** |
+| 메모리 (physical footprint) | 57MB | **14MB** |
+| 스레드 (유휴) | — | **3** |
 | 확대/축소 중 CPU (프레임당) | — | **−25%** |
+| 확대/축소 200회당 증가분 | +21MB | **0MB** |
+
+측정 조건까지 적어 둡니다. 유휴 CPU는 **31.8시간 연속 실사용**(재생·패널·선반 전부 포함) 동안 쌓인 누적 CPU 54.2초를 나눈 값입니다 — 조용한 순간만 골라 잰 게 아닙니다. 메모리 14MB는 실행 직후 정착값이고, 같은 31.8시간을 돌린 뒤에는 49MB / 스레드 6개였습니다(앨범아트 캐시와 실제로 쓴 기능들). 늘긴 하지만 **한 번 올라가고 멈춥니다** — 아래 ⑥이 그 얘기입니다.
 
 **① 미터가 CPU를 먹던 이유는 두 가지였습니다.**
 
@@ -112,7 +135,17 @@ macOS에서 `TimelineView`가 `NSHostingView` 안에 있으면 `sizeThatFits()`�
 
 **④ 설정 창은 닫으면 놓아줍니다.** `isReleasedWhenClosed = false`에 static 참조까지 잡혀 있어서, 한 번 열면 SwiftUI 트리 전체가 세션 내내 남았습니다. 이 앱 상주 메모리의 대부분이 아무도 보지 않는 창이었습니다.
 
-**⑤ 집중 모드는 뺐습니다.** `INFocusStatusCenter`가 macOS에서 신뢰할 수 없습니다 — `authorizationStatus`는 tccd가 `kTCCServiceFocusStatus`를 `authValue=2`(허용)로 기록한 순간에도 같은 프로세스 안에서 `.notDetermined`를 반환하고, `focusStatus.isFocused`는 집중 모드를 켜도 `false`에서 움직이지 않았습니다. 권한 요청은 프롬프트를 띄우지 않고, 앱이 LaunchServices로 실행된 게 아니면 **프로세스를 SIGABRT로 죽입니다**. 달 아이콘 하나를 위해 감당할 표면이 아니었습니다.
+**⑤ 확대/축소가 메모리를 흘렸습니다 — 누수가 아니라 캐시였습니다.** 열고 닫기를 200회 반복하면 21MB가 늘어난 채 돌아오지 않았습니다. `leaks`는 0을 보고합니다. 도달 가능한데 계속 자라는 것, 즉 캐시입니다.
+
+범인은 **CoreGraphics의 글리프 비트맵 캐시**(`CGGlyphBuilderLockBitmaps`)였습니다. 이 캐시는 **서로 다른 텍스트 행렬마다 항목을 하나씩** 만들고 **아무것도 버리지 않습니다.** 그런데 이 앱은 내용을 재배치하지 않고 통째로 스케일하므로(위 모션 항목), 전환 한 번에 제목·아티스트·시간이 매 프레임 **조금씩 다른 배율**로 래스터화됩니다. 프레임마다 새 항목이 생기고, 영원히 남습니다.
+
+여기서 직관이 한 번 뒤집힙니다. **렌더링을 싸게 만들수록 더 많이 샙니다** — 프레임이 더 나오고, 프레임이 늘면 서로 다른 배율이 늘기 때문입니다.
+
+고치는 방법은 텍스트를 **한 번만** 그려 텍스처로 만들고 스프링이 그 텍스처를 옮기게 하는 것입니다(`drawingGroup`). 단, **패널 전체에 걸면 안 됩니다.** 제일 그럴듯하고 틀린 자리입니다 — 래스터화 그룹 안에서는 AppKit에서 호스팅된 것(미터, AirPlay 버튼)이 그려지지 않고 🚫 자리표시자가 됩니다. 화면을 찍어 보고서야 알았습니다. 그래서 [`rasterisedText()`](Sources/Dynamic/Motion/Transitions.swift)는 텍스트 하위 트리에만 걸립니다. 마퀴 제목은 offset **안쪽**에 걸어서, 스크롤이 매 프레임 글자를 다시 그리는 대신 텍스처를 밀도록 했습니다.
+
+결과는 200회 반복 후 증가분 0MB, 5분 소크에서 86·86·85·85MB로 평평, 전환 CPU는 16.3% → 11.1%로 덤이었습니다.
+
+**⑥ 집중 모드는 뺐습니다.** `INFocusStatusCenter`가 macOS에서 신뢰할 수 없습니다 — `authorizationStatus`는 tccd가 `kTCCServiceFocusStatus`를 `authValue=2`(허용)로 기록한 순간에도 같은 프로세스 안에서 `.notDetermined`를 반환하고, `focusStatus.isFocused`는 집중 모드를 켜도 `false`에서 움직이지 않았습니다. 권한 요청은 프롬프트를 띄우지 않고, 앱이 LaunchServices로 실행된 게 아니면 **프로세스를 SIGABRT로 죽입니다**. 달 아이콘 하나를 위해 감당할 표면이 아니었습니다.
 
 ---
 
@@ -165,3 +198,31 @@ SIGN_IDENTITY="Apple Development: you@example.com" ./scripts/bundle.sh release
 ```
 
 **자동 실행**은 경로로 등록되므로 앱을 응용 프로그램 폴더로 옮긴 뒤 켜세요.
+
+---
+
+## 배포
+
+```bash
+./scripts/release.sh
+```
+
+빌드 → 서명 → 공증 → 스테이플까지 하고 `build/dist/Dynamic-<버전>.zip`을 내놓습니다.
+
+**Developer ID Application 인증서가 필요합니다.** Apple Distribution(App Store용)이나 Apple Development(내 맥용)로는 공증이 안 되고, 제출 몇 분 뒤에야 알기 어려운 오류로 반려됩니다. 그래서 스크립트가 인증서 이름을 직접 대조하고, 없으면 시작도 하지 않습니다.
+
+자격증명은 한 번만 저장해 두면 됩니다:
+
+```bash
+xcrun notarytool store-credentials Dynamic-notary --apple-id you@example.com --team-id TEAMID --password xxxx-xxxx-xxxx-xxxx
+```
+
+여기서 걸리기 쉬운 두 가지를 미리 처리해 뒀습니다. 서명에는 **보안 타임스탬프**가 있어야 하고(`--timestamp=none`이면 반려), 하드닝 런타임은 **번들 안의 모든 Mach-O**에 붙어야 합니다 — 메인 실행 파일뿐 아니라 `MediaRemoteAdapter.framework`까지요.
+
+---
+
+## 라이선스
+
+[MIT](LICENSE).
+
+[mediaremote-adapter](https://github.com/ungive/mediaremote-adapter)(BSD 3-Clause, © 2025 Jonas van den Berg)를 번들에 포함합니다. 라이선스 전문은 앱 안(`Dynamic.app/Contents/Resources/LICENSE-mediaremote-adapter`)에 함께 들어갑니다.
