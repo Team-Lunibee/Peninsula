@@ -398,8 +398,117 @@ enum Bench {
                 try? await Task.sleep(for: .seconds(3))
                 model.present(.trackChanged, for: 600)
             }
+        // Puts believable content in every tab and holds the panel open, so the
+        // screenshots in the README show the app doing something rather than
+        // three empty states. Nothing here touches the user's own shelf: the
+        // files are generated into a temporary directory and cleared on exit.
+        case "demo":
+            Task { @MainActor in
+                let temp = demoFiles()
+                if !temp.isEmpty { _ = model.shelf.add(contentsOf: temp) }
+
+                // After the real refresh, not before it: BluetoothBattery.start()
+                // shells out to system_profiler and replaces `devices` a second
+                // or two in, so an injection at t=0 is quietly overwritten by
+                // whatever is actually paired to this Mac.
+                try? await Task.sleep(for: .seconds(3))
+                model.bluetooth.setForBench(demoDevices())
+
+                controller?.holdOpenForBench()
+
+                // expand() is a no-op when already open, so re-asserting it only
+                // undoes a collapse the click monitor asked for — which is what
+                // happens whenever the machine is in use while photographing.
+                for tick in 0..<120 {
+                    model.expand()
+                    if tick == 4 { model.bluetooth.setForBench(demoDevices()) }
+                    try? await Task.sleep(for: .milliseconds(500))
+                }
+                model.shelf.removeAll()
+            }
         default: break
         }
+    }
+
+    /// Two accessories, not three: a third card overflows the panel and has to
+    /// be scrolled to, which photographs as a clipped layout rather than as the
+    /// feature working. These two cover both shapes worth showing — a
+    /// left/right/case split, and a single level low enough to turn orange.
+    @MainActor
+    private static func demoDevices() -> [BluetoothBattery.Device] {
+        [
+            .init(address: "00:11:22:33:44:01", name: "AirPods Pro",
+                  main: nil, left: 82, right: 79, caseLevel: 45),
+            .init(address: "00:11:22:33:44:02", name: "Magic Mouse",
+                  main: 14, left: nil, right: nil, caseLevel: nil),
+        ]
+    }
+
+    /// Real files, not empty ones: the tiles render Quick Look thumbnails, so a
+    /// zero-byte `.png` would photograph as a generic icon and prove nothing.
+    private static func demoFiles() -> [URL] {
+        let temp = FileManager.default.temporaryDirectory
+            .appendingPathComponent("dynamic-demo", isDirectory: true)
+        try? FileManager.default.removeItem(at: temp)
+        try? FileManager.default.createDirectory(at: temp, withIntermediateDirectories: true)
+
+        var urls: [URL] = []
+
+        for (name, hue) in [("표지 시안.png", 0.58), ("배너 초안.png", 0.92)] {
+            let url = temp.appendingPathComponent(name)
+            if writePNG(to: url, hue: hue) { urls.append(url) }
+        }
+
+        let notes = temp.appendingPathComponent("회의 메모.txt")
+        if (try? Data("스크롤 곡선 다시 재기\n노치 세이프존 확인\n".utf8).write(to: notes)) != nil {
+            urls.append(notes)
+        }
+
+        let pdf = temp.appendingPathComponent("사양서.pdf")
+        if writePDF(to: pdf) { urls.append(pdf) }
+
+        return urls
+    }
+
+    private static func writePNG(to url: URL, hue: Double) -> Bool {
+        let side = 512
+        guard let context = CGContext(
+            data: nil, width: side, height: side, bitsPerComponent: 8, bytesPerRow: 0,
+            space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        ) else { return false }
+
+        for row in 0..<8 {
+            for column in 0..<8 {
+                let shade = Double((row + column) % 2 == 0 ? 1.0 : 0.72)
+                context.setFillColor(NSColor(
+                    hue: hue, saturation: 0.55, brightness: shade, alpha: 1
+                ).cgColor)
+                let step = side / 8
+                context.fill(CGRect(x: column * step, y: row * step, width: step, height: step))
+            }
+        }
+
+        guard let image = context.makeImage() else { return false }
+        let rep = NSBitmapImageRep(cgImage: image)
+        guard let data = rep.representation(using: .png, properties: [:]) else { return false }
+        return (try? data.write(to: url)) != nil
+    }
+
+    private static func writePDF(to url: URL) -> Bool {
+        var box = CGRect(x: 0, y: 0, width: 420, height: 560)
+        guard let context = CGContext(url as CFURL, mediaBox: &box, nil) else { return false }
+        context.beginPDFPage(nil)
+        context.setFillColor(NSColor.white.cgColor)
+        context.fill(box)
+        context.setFillColor(NSColor.black.withAlphaComponent(0.82).cgColor)
+        for line in 0..<14 {
+            let width = line % 4 == 3 ? 150.0 : 300.0
+            context.fill(CGRect(x: 60, y: 460 - Double(line) * 28, width: width, height: 9))
+        }
+        context.endPDFPage()
+        context.closePDF()
+        return true
     }
 
     /// A synthetic now-playing snapshot, so the full media panel is on screen

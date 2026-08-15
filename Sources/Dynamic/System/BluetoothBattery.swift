@@ -47,6 +47,13 @@ final class BluetoothBattery {
 
     private(set) var devices: [Device] = []
 
+    /// Test seam for `Bench`: puts a known set of devices on screen without a
+    /// radio, a paired accessory, or the two-second `system_profiler` call —
+    /// so the panel can be photographed and inspected on any machine.
+    func setForBench(_ devices: [Device]) {
+        self.devices = devices
+    }
+
     /// Fires when a device with battery information newly connects.
     var onConnect: ((Device) -> Void)?
 

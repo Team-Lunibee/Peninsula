@@ -4,6 +4,16 @@
 
 **상주 CPU 0.05% · 메모리 14MB · 스레드 3개** — 전부 실측이고, [아래](#성능)에 어떻게 거기까지 갔는지 적어 뒀습니다.
 
+<img src="docs/compact.png" width="248" alt="재생 중인 알약">
+
+재생 중에는 노치가 양옆으로 조금 자라 앨범아트와 미터만 답니다. 커서를 올리면 펼쳐집니다.
+
+<img src="docs/media.png" width="640" alt="미디어 패널">
+
+<img src="docs/shelf.png" width="640" alt="선반">
+
+<img src="docs/devices.png" width="640" alt="기기 배터리">
+
 > ### 받기 전에 알아두세요
 >
 > macOS는 다른 앱의 재생 정보를 공개 API로 주지 않습니다. 이 앱은 아직 권한이 남아 있는 시스템 perl을 통해 **비공개 MediaRemote 프레임워크**를 읽습니다 ([자세히](#알아둘-것)).
