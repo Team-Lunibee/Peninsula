@@ -96,7 +96,7 @@ struct ShelfPanelView: View {
             Button {
                 model.onAirDropAll?()
             } label: {
-                Label("전체 AirDrop", systemImage: "shareplay")
+                Label("AirDrop All", systemImage: "shareplay")
                     .font(.system(size: 11, weight: .medium))
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
@@ -115,7 +115,7 @@ struct ShelfPanelView: View {
                     .background(Circle().fill(.white.opacity(0.14)))
             }
             .buttonStyle(.plain)
-            .help("선반 비우기")
+            .help("Empty the shelf")
         }
         .foregroundStyle(.white.opacity(0.85))
     }
@@ -124,7 +124,7 @@ struct ShelfPanelView: View {
         let count = shelf.items.count
         let bytes = shelf.items.reduce(Int64(0)) { $0 + $1.byteSize }
         let size = ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
-        return "\(count)개 항목 · \(size)"
+        return String(localized: "\(count) items · \(size)")
     }
 
     private var empty: some View {
@@ -132,11 +132,11 @@ struct ShelfPanelView: View {
             Image(systemName: "tray.and.arrow.down")
                 .font(.system(size: 24, weight: .light))
                 .foregroundStyle(.white.opacity(0.35))
-            Text("노치 위로 파일을 끌어다 놓으세요")
+            Text("Drag files onto the notch")
                 .rasterisedText()
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(.white.opacity(0.55))
-            Text("\(Preferences.shared.shelfExpiryDays)일 동안 보관한 뒤 자동으로 정리됩니다")
+            Text("Kept for \(Preferences.shared.shelfExpiryDays) days, then cleared automatically")
                 .rasterisedText()
                 .font(.system(size: 10.5))
                 .foregroundStyle(.white.opacity(0.32))
@@ -171,7 +171,7 @@ private struct DropZonesView: View {
                 zone(
                     symbol: "shareplay",
                     title: "AirDrop",
-                    subtitle: "바로 보내기",
+                    subtitle: String(localized: "Send straight away"),
                     tint: .cyan,
                     isTargeted: airDropTargeted
                 )
@@ -182,8 +182,8 @@ private struct DropZonesView: View {
 
                 zone(
                     symbol: "tray.and.arrow.down.fill",
-                    title: "선반에 보관",
-                    subtitle: "\(Preferences.shared.shelfExpiryDays)일 동안",
+                    title: String(localized: "Keep on shelf"),
+                    subtitle: String(localized: "For \(Preferences.shared.shelfExpiryDays) days"),
                     tint: .green,
                     isTargeted: shelfTargeted
                 )
@@ -331,11 +331,11 @@ private struct ShelfTile: View {
             return NSItemProvider(contentsOf: url) ?? NSItemProvider()
         }
         .contextMenu {
-            Button("열기") { model.shelf.open(item) }
-            Button("Finder에서 보기") { model.shelf.reveal(item) }
+            Button("Open") { model.shelf.open(item) }
+            Button("Show in Finder") { model.shelf.reveal(item) }
             Button("AirDrop…") { model.onAirDropItem?(item) }
             Divider()
-            Button("제거", role: .destructive) { model.shelf.remove(item) }
+            Button("Remove", role: .destructive) { model.shelf.remove(item) }
         }
         .task(id: item.id) {
             thumbnail = await ThumbnailCache.shared.thumbnail(
@@ -367,6 +367,6 @@ private struct ShelfTile: View {
         .scaleEffect(isPressingRemove ? 0.88 : 1)
         .animation(Motion.content(Preferences.shared.motion), value: isPressingRemove)
         .onHover { isPressingRemove = $0 }
-        .help("선반에서 제거")
+        .help("Remove from shelf")
     }
 }

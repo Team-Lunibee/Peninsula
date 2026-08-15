@@ -28,7 +28,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 symbol: device.symbol,
                 tint: device.isLow ? .orange : .white,
                 title: device.name,
-                subtitle: "연결됨",
+                subtitle: String(localized: "Connected"),
                 trailingValue: device.headline.map { "\($0)%" }
             )))
         }
@@ -108,7 +108,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.delegate = self
 
         menu.addItem(
-            withTitle: "노치 열기",
+            withTitle: String(localized: "Open Notch"),
             action: #selector(openNotch),
             keyEquivalent: ""
         ).target = self
@@ -116,7 +116,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(.separator())
 
         let mediaItem = menu.addItem(
-            withTitle: "재생 중 표시",
+            withTitle: String(localized: "Show Now Playing"),
             action: #selector(toggleMedia),
             keyEquivalent: ""
         )
@@ -124,7 +124,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         mediaItem.tag = MenuTag.media.rawValue
 
         let shelfItem = menu.addItem(
-            withTitle: "파일 선반",
+            withTitle: String(localized: "File Shelf"),
             action: #selector(toggleShelf),
             keyEquivalent: ""
         )
@@ -134,13 +134,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(.separator())
 
         menu.addItem(
-            withTitle: "설정…",
+            withTitle: String(localized: "Settings…"),
             action: #selector(openSettings),
             keyEquivalent: ","
         ).target = self
 
         menu.addItem(
-            withTitle: "Dynamic 종료",
+            withTitle: String(localized: "Quit Dynamic"),
             action: #selector(quit),
             keyEquivalent: "q"
         ).target = self

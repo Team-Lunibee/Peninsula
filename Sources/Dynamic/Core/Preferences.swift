@@ -10,9 +10,9 @@ enum NotchHeightMode: String, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .matchRealNotch: "노치에 맞춤"
-        case .matchMenuBar: "메뉴 막대에 맞춤"
-        case .custom: "직접 지정"
+        case .matchRealNotch: String(localized: "Match the notch")
+        case .matchMenuBar: String(localized: "Match the menu bar")
+        case .custom: String(localized: "Custom")
         }
     }
 }
@@ -30,8 +30,8 @@ enum ExternalDisplayStyle: String, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .notch: "노치처럼 상단 밀착"
-        case .floating: "메뉴 막대 안에 알약으로"
+        case .notch: String(localized: "Flush with the top, like a notch")
+        case .floating: String(localized: "A pill inside the menu bar")
         }
     }
 }
@@ -47,8 +47,8 @@ enum DisplayTarget: String, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .automatic: "노치가 있는 화면 (없으면 주 디스플레이)"
-        case .followMouse: "마우스가 있는 화면"
+        case .automatic: String(localized: "Screen with the notch")
+        case .followMouse: String(localized: "The screen with the pointer")
         }
     }
 }
@@ -62,9 +62,9 @@ enum MotionPreset: String, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .snappy: "아일랜드 기준"
-        case .bouncy: "탄력 있게"
-        case .gentle: "부드럽게"
+        case .snappy: String(localized: "Like the Island")
+        case .bouncy: String(localized: "Bouncy")
+        case .gentle: String(localized: "Gentle")
         }
     }
 }
@@ -78,9 +78,9 @@ enum IdleStyle: String, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .plain: "표시 안 함"
-        case .miniMedia: "재생 중인 곡"
-        case .clock: "시계"
+        case .plain: String(localized: "Nothing")
+        case .miniMedia: String(localized: "The current track")
+        case .clock: String(localized: "A clock")
         }
     }
 }

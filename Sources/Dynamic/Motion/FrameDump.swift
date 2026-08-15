@@ -94,7 +94,7 @@ enum FrameDump {
         let rows = Int((Double(samples.count) / Double(columns)).rounded(.up))
 
         let view = VStack(spacing: 0) {
-            Text("\(opening ? "확장" : "축소") · \(preset.label) · 1/60s")
+            Text("\(opening ? "Expand" : "Collapse") · \(preset.label) · 1/60s")
                 .font(.system(size: 20, weight: .semibold))
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity, alignment: .leading)

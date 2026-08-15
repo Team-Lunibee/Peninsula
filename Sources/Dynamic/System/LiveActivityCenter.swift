@@ -85,7 +85,7 @@ final class LiveActivityCenter {
 
         // Shaped after the real island's charge banner: the words on the left,
         // the reading and a battery on the right, and nothing in between. No
-        // leading badge — a tinted circle in front of "충전 중" competes with the
+        // leading badge — a tinted circle in front of "Charging" competes with the
         // battery it is describing — and no remaining-time subtitle, which
         // crowds the trailing region the percentage needs.
         let info: ActivityInfo = switch event {
@@ -93,7 +93,7 @@ final class LiveActivityCenter {
             ActivityInfo(
                 symbol: nil,
                 tint: .green,
-                title: "충전 중",
+                title: String(localized: "Charging"),
                 subtitle: nil,
                 trailingValue: "\(percentage)%",
                 level: Double(percentage) / 100
@@ -102,7 +102,7 @@ final class LiveActivityCenter {
             ActivityInfo(
                 symbol: nil,
                 tint: .white,
-                title: "배터리로 전환",
+                title: String(localized: "On battery"),
                 subtitle: remainingSubtitle,
                 trailingValue: "\(percentage)%",
                 level: Double(percentage) / 100
@@ -111,7 +111,7 @@ final class LiveActivityCenter {
             ActivityInfo(
                 symbol: nil,
                 tint: .green,
-                title: "충전 완료",
+                title: String(localized: "Fully charged"),
                 subtitle: nil,
                 trailingValue: "100%",
                 level: 1
@@ -120,7 +120,7 @@ final class LiveActivityCenter {
             ActivityInfo(
                 symbol: nil,
                 tint: .orange,
-                title: "배터리 부족",
+                title: String(localized: "Low battery"),
                 subtitle: nil,
                 trailingValue: "\(percentage)%",
                 level: Double(percentage) / 100
@@ -134,7 +134,9 @@ final class LiveActivityCenter {
         guard let minutes = power.snapshot?.minutesRemaining else { return nil }
         let hours = minutes / 60
         let rest = minutes % 60
-        return hours > 0 ? "\(hours)시간 \(rest)분 남음" : "\(rest)분 남음"
+        return hours > 0
+            ? String(localized: "\(hours)h \(rest)m left")
+            : String(localized: "\(rest)m left")
     }
 
     // MARK: - Files
@@ -180,7 +182,7 @@ final class LiveActivityCenter {
 
         let label = urls.count == 1
             ? first.lastPathComponent
-            : "\(first.lastPathComponent) 외 \(urls.count - 1)개"
+            : String(localized: "\(first.lastPathComponent) and \(urls.count - 1) others")
 
         // The directory entry appears when the transfer *starts*, so this is
         // genuinely "receiving", not "received". Saying so is the whole value
@@ -190,7 +192,7 @@ final class LiveActivityCenter {
             .info(ActivityInfo(
                 symbol: "arrow.down.circle.dotted",
                 tint: .blue,
-                title: "AirDrop 받는 중",
+                title: String(localized: "Receiving AirDrop"),
                 subtitle: label,
                 trailingValue: nil
             )),
@@ -209,7 +211,9 @@ final class LiveActivityCenter {
                 .info(ActivityInfo(
                     symbol: "airplayaudio",
                     tint: .blue,
-                    title: settled.isEmpty ? "AirDrop 전송 중단됨" : "AirDrop 받음",
+                    title: settled.isEmpty
+                        ? String(localized: "AirDrop transfer stopped")
+                        : String(localized: "AirDrop received"),
                     subtitle: label,
                     trailingValue: nil
                 )),
@@ -232,22 +236,41 @@ final class LiveActivityCenter {
         let info = ActivityInfo(
             symbol: isScreenshot ? "camera.viewfinder" : "arrow.down.circle.fill",
             tint: isScreenshot ? .purple : .cyan,
-            title: isScreenshot ? "스크린샷 저장됨" : "다운로드 완료",
+            title: isScreenshot
+                ? String(localized: "Screenshot saved")
+                : String(localized: "Download finished"),
             subtitle: arrivals.count == 1
                 ? first.lastPathComponent
-                : "\(first.lastPathComponent) 외 \(arrivals.count - 1)개",
+                : String(localized: "\(first.lastPathComponent) and \(arrivals.count - 1) others"),
             trailingValue: nil
         )
 
         model?.present(.info(info), for: 3.0)
     }
 
-    /// macOS names screenshots with a localised prefix, so the filename alone
-    /// is unreliable — the image dimensions matching a display is the giveaway,
-    /// but the cheap check is the extension plus the folder it landed in.
+    /// macOS names screenshots with a prefix in *its own* language, not in the
+    /// app's, so this has to match every language the system might be set to
+    /// rather than the one Dynamic is currently displaying. The list below
+    /// covers the languages this app ships in; anything else falls through and
+    /// is announced as a download, which is wrong but harmless.
+    ///
+    /// The image dimensions matching a display would be the real giveaway, but
+    /// that costs a decode per arriving file to correct a one-word label.
+    private static let screenshotPrefixes = [
+        "screenshot",       // en
+        "스크린샷",           // ko
+        "スクリーンショット",   // ja
+        "截屏",              // zh-Hans
+        "captura de pantalla", // es
+        "capture d’écran",   // fr
+        "capture d'écran",   // fr, straight apostrophe
+        "bildschirmfoto",   // de
+        "cleanshot",        // third-party, but common enough to be worth it
+    ]
+
     private static func looksLikeScreenshot(_ url: URL) -> Bool {
         let name = url.deletingPathExtension().lastPathComponent.lowercased()
         let isImage = ["png", "jpg", "jpeg", "heic"].contains(url.pathExtension.lowercased())
-        return isImage && (name.contains("screenshot") || name.contains("스크린샷") || name.hasPrefix("cleanshot"))
+        return isImage && screenshotPrefixes.contains { name.contains($0) }
     }
 }

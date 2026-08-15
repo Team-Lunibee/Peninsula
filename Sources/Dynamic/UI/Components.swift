@@ -187,7 +187,7 @@ struct VolumeControl: View {
                         .resizable()
                         .frame(width: 15, height: 15)
                         .opacity(0.9)
-                        .help("이 앱의 음량")
+                        .help("Volume for this app")
                 } else {
                     Button {
                         volume.toggleMute()
@@ -200,7 +200,7 @@ struct VolumeControl: View {
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .help("시스템 음량")
+                    .help("System volume")
                 }
 
                 GeometryReader { proxy in

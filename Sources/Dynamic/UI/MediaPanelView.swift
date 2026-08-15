@@ -22,7 +22,7 @@ struct MediaPanelView: View {
                 placeholder(
                     symbol: "exclamationmark.triangle",
                     tint: .orange.opacity(0.75),
-                    title: "재생 정보를 가져올 수 없음",
+                    title: "Playback information unavailable",
                     detail: reason
                 )
             } else if let track = media.nowPlaying {
@@ -31,8 +31,8 @@ struct MediaPanelView: View {
                 placeholder(
                     symbol: "music.note.list",
                     tint: .white.opacity(0.3),
-                    title: "재생 중인 항목 없음",
-                    detail: "음악, Spotify 등 어떤 플레이어든 재생하면 여기에 나타납니다"
+                    title: "Nothing playing",
+                    detail: "Play something in Music, Spotify, or any other player and it appears here"
                 )
             }
         }
@@ -59,7 +59,7 @@ struct MediaPanelView: View {
                 VStack(alignment: .leading, spacing: 1) {
                     MarqueeText(text: track.title, font: .system(size: 16, weight: .semibold))
 
-                    Text(track.artist ?? track.album ?? "아티스트 정보 없음")
+                    Text(track.artist ?? track.album ?? String(localized: "Unknown artist"))
                         .font(.system(size: 13))
                         .foregroundStyle(.white.opacity(0.55))
                         .lineLimit(1)
@@ -198,7 +198,7 @@ struct MediaPanelView: View {
                     action: media.toggleShuffle
                 )
                 .foregroundStyle(.white.opacity(shuffling ? 0.95 : 0.4))
-                .help(shuffling ? "셔플 끄기" : "셔플")
+                .help(shuffling ? "Turn off shuffle" : "Shuffle")
             }
 
             Spacer(minLength: 12)

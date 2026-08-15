@@ -498,9 +498,9 @@ private struct PeekContentView: View {
 
     private var title: String {
         switch model.activity {
-        case .trackChanged: model.media.nowPlaying?.title ?? "재생 중"
-        case .filesAdded(let count): "선반에 \(count)개 보관됨"
-        case .dropTarget: "놓으면 보관됩니다"
+        case .trackChanged: model.media.nowPlaying?.title ?? String(localized: "Now Playing")
+        case .filesAdded(let count): String(localized: "\(count) kept on the shelf")
+        case .dropTarget: String(localized: "Drop to keep")
         case .info(let info): info.title
         case .level, nil: ""
         }
@@ -509,8 +509,8 @@ private struct PeekContentView: View {
     private var subtitle: String? {
         switch model.activity {
         case .trackChanged: model.media.nowPlaying?.artist
-        case .filesAdded: "노치를 열어 다시 꺼낼 수 있어요"
-        case .dropTarget: "노치 위에서 손을 떼세요"
+        case .filesAdded: String(localized: "Open the notch to get them back")
+        case .dropTarget: String(localized: "Let go over the notch")
         case .info(let info): info.subtitle
         case .level, nil: nil
         }
@@ -692,11 +692,11 @@ private struct ExpandedContentView: View {
     }
 
     private var lyricsHelp: String {
-        if model.media.lyrics.isLoading { return "가사 찾는 중…" }
+        if model.media.lyrics.isLoading { return String(localized: "Looking for lyrics…") }
         if model.media.lyrics.lyrics?.isSynced == true {
-            return Preferences.shared.showLyrics ? "가사 숨기기" : "가사 보기"
+            return Preferences.shared.showLyrics ? String(localized: "Hide lyrics") : String(localized: "Show lyrics")
         }
-        return "이 곡의 동기화 가사를 찾지 못했습니다"
+        return String(localized: "No synced lyrics found for this track")
     }
 
     private func isAvailable(_ tab: NotchTab) -> Bool {

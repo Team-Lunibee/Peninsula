@@ -112,7 +112,7 @@ final class ShelfStore {
             return .added
         } catch {
             try? FileManager.default.removeItem(at: itemDirectory)
-            lastError = "\(filename)을(를) 추가하지 못했습니다: \(error.localizedDescription)"
+            lastError = String(localized: "Could not add \(filename): \(error.localizedDescription)")
             Log.shelf.error("shelf ingest failed for \(filename, privacy: .private): \(error.localizedDescription)")
             return .failed
         }

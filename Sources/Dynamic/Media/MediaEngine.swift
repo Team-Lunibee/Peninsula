@@ -83,7 +83,7 @@ final class MediaEngine {
     func start() {
         guard bridge == nil else { return }
         guard let bridge = MediaRemoteBridge() else {
-            unavailableReason = "번들에 미디어 어댑터가 없습니다."
+            unavailableReason = String(localized: "The media adapter is missing from the app bundle.")
             return
         }
 
@@ -102,7 +102,7 @@ final class MediaEngine {
             // A failing probe means a macOS update closed the perl hole; say so
             // rather than looking broken.
             if await bridge.probe() == false {
-                self.unavailableReason = "이 macOS 버전에서 재생 정보 접근이 차단되어 있습니다."
+                self.unavailableReason = String(localized: "This version of macOS blocks access to playback information.")
             }
         }
     }

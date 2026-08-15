@@ -34,6 +34,15 @@ cp "$BINARY" "$APP/Contents/MacOS/Dynamic"
 cp "$ROOT/Resources/Info.plist" "$APP/Contents/Info.plist"
 printf 'APPL????' > "$APP/Contents/PkgInfo"
 
+# Localisations go straight into Contents/Resources, which is where Bundle.main
+# looks. SwiftPM would otherwise put them in a Dynamic_Dynamic.bundle beside the
+# binary — invisible to this hand-assembled app, and every string would silently
+# fall back to its English key.
+for LPROJ in "$ROOT"/Resources/*.lproj; do
+    [ -d "$LPROJ" ] || continue
+    cp -R "$LPROJ" "$APP/Contents/Resources/"
+done
+
 # The adapter is loaded by perl at runtime via an absolute path, so it ships in
 # Resources rather than Frameworks — nothing in this app links against it.
 cp -R "$ADAPTER/MediaRemoteAdapter.framework" "$APP/Contents/Resources/"

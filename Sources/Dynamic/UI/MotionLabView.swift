@@ -16,9 +16,9 @@ struct MotionLabView: View {
 
         var label: String {
             switch self {
-            case .expand: "확장"
-            case .collapse: "축소"
-            case .banner: "배너"
+            case .expand: String(localized: "Expand")
+            case .collapse: String(localized: "Collapse")
+            case .banner: String(localized: "Banner")
             }
         }
 
@@ -351,7 +351,7 @@ struct MotionLabView: View {
                 .labelsHidden()
                 .frame(width: 110)
 
-                Toggle("컷아웃", isOn: $showsCutout)
+                Toggle("Cutout", isOn: $showsCutout)
                     .toggleStyle(.checkbox)
             }
 
@@ -362,7 +362,7 @@ struct MotionLabView: View {
                 } label: {
                     Image(systemName: "backward.frame.fill")
                 }
-                .help("한 프레임 뒤로")
+                .help("Back one frame")
 
                 Button {
                     isPlaying.toggle()
@@ -370,7 +370,7 @@ struct MotionLabView: View {
                     Image(systemName: isPlaying ? "pause.fill" : "play.fill")
                         .frame(width: 14)
                 }
-                .help(isPlaying ? "일시정지" : "재생")
+                .help(isPlaying ? "Pause" : "Play")
 
                 Button {
                     isPlaying = false
@@ -378,7 +378,7 @@ struct MotionLabView: View {
                 } label: {
                     Image(systemName: "forward.frame.fill")
                 }
-                .help("한 프레임 앞으로")
+                .help("Forward one frame")
 
                 Button {
                     isPlaying = false
@@ -386,7 +386,7 @@ struct MotionLabView: View {
                 } label: {
                     Image(systemName: "gobackward")
                 }
-                .help("처음으로")
+                .help("Back to the start")
 
                 Slider(value: $time, in: 0...totalDuration) { editing in
                     if editing { isPlaying = false }
@@ -406,37 +406,37 @@ struct MotionLabView: View {
     private var readouts: some View {
         Grid(alignment: .leading, horizontalSpacing: 18, verticalSpacing: 7) {
             GridRow {
-                caption("프레임")
+                caption("Frame")
                 value("#\(frame)")
-                caption("가로 / 세로 진행")
+                caption("Horizontal / vertical progress")
                 value(String(format: "%.3f / %.3f", progress, heightProgress))
             }
             GridRow {
-                caption("크기")
+                caption("Size")
                 value(String(format: "%.0f × %.0f", currentSize.width, currentSize.height))
-                caption("코너")
+                caption("Corner")
                 value(String(format: "%.1f / %.1f", currentRadii.top, currentRadii.bottom))
             }
             GridRow {
-                caption("나가는 불투명도")
+                caption("Outgoing opacity")
                 value(String(format: "%.2f", exitOpacity))
-                caption("들어오는 불투명도")
+                caption("Incoming opacity")
                 value(String(format: "%.2f", entranceOpacity))
             }
             GridRow {
-                caption("흐림 (나가는/들어오는)")
+                caption("Blur (out / in)")
                 value(String(
                     format: "%.0f%% / %.0f%%",
                     Motion.focusFactor(preset, at: time, entering: false) * 100,
                     Motion.focusFactor(preset, at: time, entering: true) * 100
                 ))
-                caption("변형")
+                caption("Deformation")
                 value(String(format: "%+.3f", squash))
             }
             GridRow {
-                caption("컨테이너 폭 진행")
+                caption("Container width progress")
                 value(String(format: "%.3f", progress))
-                caption("실폭 (변형 포함)")
+                caption("Actual width (with deformation)")
                 value(String(
                     format: "%.0f pt",
                     currentSize.width * (1 + squash * JellyModifier.horizontalGain)
@@ -444,28 +444,28 @@ struct MotionLabView: View {
             }
             Divider().gridCellUnsizedAxes(.horizontal)
             GridRow {
-                caption("스프링")
+                caption("Spring")
                 value(String(
-                    format: "가로 %.0fms·%.2f / 세로 %.0fms·%.2f",
+                    format: String(localized: "H %.0fms·%.2f / V %.0fms·%.2f"),
                     timeline.containerDuration * 1000,
                     timeline.containerBounce,
                     timeline.heightDuration * 1000,
                     timeline.heightBounce
                 ))
-                caption("콘텐츠 지연")
+                caption("Content delay")
                 value("\(Int(timeline.contentLead * 1000))ms")
             }
             GridRow {
-                caption("퇴장")
+                caption("Exit")
                 value("0 → \(Int(timeline.exitDuration * 1000))ms")
-                caption("등장")
+                caption("Enter")
                 value("\(Int(timeline.contentLead * 1000)) → \(Int((timeline.contentLead + timeline.entranceDuration) * 1000))ms")
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private func caption(_ text: String) -> some View {
+    private func caption(_ text: LocalizedStringKey) -> some View {
         Text(text)
             .font(.system(size: 11))
             .foregroundStyle(.secondary)
@@ -598,15 +598,15 @@ private struct MotionLabExpanded: View {
     private var islandRow: some View {
         HStack(spacing: 0) {
             HStack(spacing: 6) {
-                chip("music.note", "재생 중", selected: true)
-                chip("tray.full", "선반", selected: false)
+                chip("music.note", "Now Playing", selected: true)
+                chip("tray.full", "Shelf", selected: false)
             }
             .frame(width: side, alignment: .leading)
 
             Color.clear.frame(width: gap)
 
             HStack(spacing: 8) {
-                Text("음악")
+                Text("Music")
                     .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(.white.opacity(0.4))
                 Image(systemName: "quote.bubble")
@@ -621,7 +621,7 @@ private struct MotionLabExpanded: View {
         .frame(height: 32)
     }
 
-    private func chip(_ symbol: String, _ label: String, selected: Bool) -> some View {
+    private func chip(_ symbol: String, _ label: LocalizedStringKey, selected: Bool) -> some View {
         HStack(spacing: 6) {
             Image(systemName: symbol).font(.system(size: 10.5, weight: .semibold))
             Text(label).font(.system(size: 11.5, weight: .medium)).fixedSize()

@@ -36,9 +36,9 @@ enum LoginItem {
     static var explanation: String? {
         switch service.status {
         case .requiresApproval:
-            "시스템 설정 › 일반 › 로그인 항목에서 Dynamic을 허용해야 합니다."
+            String(localized: "Allow Dynamic in System Settings › General › Login Items.")
         case .notFound:
-            "로그인 항목을 등록할 수 없습니다. 앱을 응용 프로그램 폴더로 옮긴 뒤 다시 시도해 보세요."
+            String(localized: "Could not register the login item. Move the app to your Applications folder and try again.")
         default:
             nil
         }

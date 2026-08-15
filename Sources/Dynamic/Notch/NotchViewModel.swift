@@ -87,9 +87,9 @@ enum NotchTab: String, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .media: "재생 중"
-        case .shelf: "선반"
-        case .devices: "기기"
+        case .media: String(localized: "Now Playing")
+        case .shelf: String(localized: "Shelf")
+        case .devices: String(localized: "Devices")
         }
     }
 
@@ -326,7 +326,8 @@ final class NotchViewModel {
     /// Depends on how many tabs are showing, not on a fixed threshold: two fit
     /// comfortably, and the third — which only appears when a Bluetooth device
     /// is connected — is what pushes them over. Dropping to icons is much
-    /// better than truncating "재생 중" to "재".
+    /// better than truncating "Now Playing" to "Now…", and the margin has to
+    /// hold for the longest translation, not just the English.
     func showsTabLabels(visibleTabs: Int) -> Bool {
         let needed = CGFloat(visibleTabs) * 74 + CGFloat(max(0, visibleTabs - 1)) * 6
         return islandSideWidth(for: .expanded) >= needed

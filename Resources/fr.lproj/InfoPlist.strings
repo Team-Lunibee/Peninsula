@@ -1,0 +1,5 @@
+/* Info.plist usage descriptions. */
+
+"NSAppleEventsUsageDescription" = "Utilisé pour contrôler la lecture de Musique et Spotify depuis l’encoche.";
+"NSDesktopFolderUsageDescription" = "Utilisé pour conserver les fichiers déposés sur l’encoche dans le dossier étagère de Dynamic.";
+"NSDownloadsFolderUsageDescription" = "Utilisé pour conserver les fichiers déposés sur l’encoche dans le dossier étagère de Dynamic.";

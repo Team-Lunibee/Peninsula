@@ -37,9 +37,9 @@ final class AppPlayback {
 
         var label: String {
             switch self {
-            case .off: "반복"
-            case .one: "한 곡 반복 중"
-            case .all: "전체 반복 중"
+            case .off: String(localized: "Repeat")
+            case .one: String(localized: "Repeating track")
+            case .all: String(localized: "Repeating all")
             }
         }
     }

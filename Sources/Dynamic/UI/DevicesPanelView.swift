@@ -47,16 +47,16 @@ struct DevicesPanelView: View {
 
             HStack(spacing: 14) {
                 if let main = device.main {
-                    reading(label: "배터리", level: main)
+                    reading(label: "Battery", level: main)
                 }
                 if let left = device.left {
-                    reading(label: "왼쪽", level: left)
+                    reading(label: "Left", level: left)
                 }
                 if let right = device.right {
-                    reading(label: "오른쪽", level: right)
+                    reading(label: "Right", level: right)
                 }
                 if let caseLevel = device.caseLevel {
-                    reading(label: "케이스", level: caseLevel)
+                    reading(label: "Case", level: caseLevel)
                 }
             }
         }
@@ -69,7 +69,7 @@ struct DevicesPanelView: View {
         )
     }
 
-    private func reading(label: String, level: Int) -> some View {
+    private func reading(label: LocalizedStringKey, level: Int) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(label)
                 .font(.system(size: 9.5))
@@ -110,11 +110,11 @@ struct DevicesPanelView: View {
             Image(systemName: "wave.3.right.circle")
                 .font(.system(size: 24, weight: .light))
                 .foregroundStyle(.white.opacity(0.35))
-            Text("연결된 기기 없음")
+            Text("No devices connected")
                 .rasterisedText()
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(.white.opacity(0.55))
-            Text("배터리를 보고하는 기기만 표시됩니다")
+            Text("Only devices that report a battery level appear here")
                 .rasterisedText()
                 .font(.system(size: 10.5))
                 .foregroundStyle(.white.opacity(0.32))

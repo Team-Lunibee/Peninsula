@@ -146,7 +146,7 @@ final class MediaRemoteBridge: @unchecked Sendable {
             Log.media.info("media stream started (pid \(task.processIdentifier))")
         } catch {
             Log.media.error("failed to start media stream: \(error.localizedDescription)")
-            reportUnavailable("미디어 어댑터를 실행하지 못했습니다.")
+            reportUnavailable(String(localized: "Could not start the media adapter."))
         }
     }
 
@@ -161,7 +161,7 @@ final class MediaRemoteBridge: @unchecked Sendable {
         restartAttempts += 1
         guard restartAttempts <= Self.maxRestartAttempts else {
             Log.media.error("media stream keeps dying; giving up")
-            reportUnavailable("미디어 어댑터가 응답하지 않습니다.")
+            reportUnavailable(String(localized: "The media adapter is not responding."))
             return
         }
 

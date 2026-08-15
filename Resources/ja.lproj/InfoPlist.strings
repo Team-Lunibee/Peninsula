@@ -1,0 +1,5 @@
+/* Info.plist usage descriptions. */
+
+"NSAppleEventsUsageDescription" = "ノッチからミュージックと Spotify の再生を操作するために使用します。";
+"NSDesktopFolderUsageDescription" = "ノッチにドロップしたファイルを Dynamic のシェルフフォルダに保管するために使用します。";
+"NSDownloadsFolderUsageDescription" = "ノッチにドロップしたファイルを Dynamic のシェルフフォルダに保管するために使用します。";
