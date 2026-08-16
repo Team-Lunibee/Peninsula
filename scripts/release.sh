@@ -69,8 +69,11 @@ echo "==> Signing as $SIGN_IDENTITY"
 # NO_INSTALL: a release build must not replace the copy in /Applications. It is
 # signed with a different certificate than the dev build, so macOS treats it as
 # a different app and drops every privacy grant the user has given.
+#
+# DYNAMIC_RELEASE: leaves the Motion Lab and the frame dumper out of the binary.
 echo "==> Building"
-NO_INSTALL=1 SIGN_IDENTITY="$SIGN_IDENTITY" "$ROOT/scripts/bundle.sh" release
+NO_INSTALL=1 DYNAMIC_RELEASE=1 SIGN_IDENTITY="$SIGN_IDENTITY" \
+    "$ROOT/scripts/bundle.sh" release
 
 VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' \
     "$APP/Contents/Info.plist")"

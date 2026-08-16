@@ -1,3 +1,7 @@
+// Development tool. Compiled only when DEV_TOOLS is defined, which
+// scripts/bundle.sh passes and scripts/release.sh does not — a released
+// build has no reason to carry a contact-sheet renderer.
+#if DEV_TOOLS
 import AppKit
 import SwiftUI
 
@@ -178,3 +182,4 @@ enum FrameDump {
         try? png.write(to: url)
     }
 }
+#endif

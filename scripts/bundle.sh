@@ -16,10 +16,29 @@ if [ ! -d "$ADAPTER/MediaRemoteAdapter.framework" ]; then
     "$ROOT/scripts/build-mediaremote-adapter.sh"
 fi
 
+# The Motion Lab and the frame dumper are compiled in unless this is a release.
+# They exist for tuning the animation, and neither belongs in a build that goes
+# to someone who just wants the app. scripts/release.sh sets DYNAMIC_RELEASE=1;
+# building here by hand keeps them.
+#
+# Each variant gets its own scratch path, and that is not tidiness. SwiftPM does
+# not treat a change in -Xswiftc as a reason to recompile, so sharing one path
+# means `swift build` reports "up to date" and hands back whichever variant was
+# built last — silently shipping the Motion Lab inside a release, or dropping it
+# from a dev build. Separate paths make the two impossible to confuse.
+BUILD_FLAGS=()
+SCRATCH="$ROOT/.build"
+if [ "${DYNAMIC_RELEASE:-0}" = "1" ]; then
+    SCRATCH="$ROOT/.build-release"
+    echo "==> Release build — dev tools excluded"
+else
+    BUILD_FLAGS=(-Xswiftc -DDEV_TOOLS)
+fi
+
 echo "==> swift build -c $CONFIG"
 cd "$ROOT"
-swift build -c "$CONFIG"
-BINARY="$(swift build -c "$CONFIG" --show-bin-path)/Dynamic"
+swift build -c "$CONFIG" --scratch-path "$SCRATCH" "${BUILD_FLAGS[@]}"
+BINARY="$(swift build -c "$CONFIG" --scratch-path "$SCRATCH" "${BUILD_FLAGS[@]}" --show-bin-path)/Dynamic"
 
 if [ ! -f "$BINARY" ]; then
     echo "error: built binary not found at $BINARY" >&2

@@ -9,6 +9,7 @@ import AppKit
 nonisolated(unsafe) private var retainedDelegate: AppDelegate?
 
 MainActor.assumeIsolated {
+    #if DEV_TOOLS
     // `--dump-frames <dir>` renders the transitions to contact sheets and
     // exits. It shares the app's Motion curves and NotchShape, so the sheets
     // show the real animation rather than a re-implementation of it.
@@ -17,6 +18,7 @@ MainActor.assumeIsolated {
         FrameDump.run(outputDirectory: CommandLine.arguments[index + 1])
         exit(0)
     }
+    #endif
 
     let application = NSApplication.shared
     let delegate = AppDelegate()

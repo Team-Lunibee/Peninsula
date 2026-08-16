@@ -1,3 +1,7 @@
+// Development tool. Compiled only when DEV_TOOLS is defined, which
+// scripts/bundle.sh passes and scripts/release.sh does not. The Motion Lab
+// is for tuning the animation, not for the people who install the app.
+#if DEV_TOOLS
 import SwiftUI
 
 /// Frame-by-frame inspector for the notch's transitions.
@@ -696,3 +700,4 @@ private struct MotionLabExpanded: View {
         .frame(height: 30)
     }
 }
+#endif
