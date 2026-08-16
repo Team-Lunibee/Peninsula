@@ -30,7 +30,7 @@ While something is playing the notch grows a little sideways and carries just th
 
 macOS 14 (Sonoma) or later, on a MacBook with a notch.
 
-Download the zip from [Releases](https://github.com/RHbox/peninsula/releases), unpack it, and move the app to **Applications**. It is signed with a Developer ID and notarised by Apple, so it opens without a warning.
+Download the zip from [Releases](https://github.com/Team-Lunibee/Peninsula/releases), unpack it, and move the app to **Applications**. It is signed with a Developer ID and notarised by Apple, so it opens without a warning.
 
 **Turn on "Open at login" *after* moving the app to Applications** — it registers a path.
 

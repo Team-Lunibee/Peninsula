@@ -30,7 +30,7 @@
 
 macOS 14 (Sonoma) 이상 · 노치가 있는 MacBook.
 
-[릴리스](https://github.com/RHbox/peninsula/releases)에서 zip을 받아 풀고 **응용 프로그램** 폴더로 옮기세요. Developer ID 서명에 Apple 공증까지 받았으므로 경고 없이 열립니다.
+[릴리스](https://github.com/Team-Lunibee/Peninsula/releases)에서 zip을 받아 풀고 **응용 프로그램** 폴더로 옮기세요. Developer ID 서명에 Apple 공증까지 받았으므로 경고 없이 열립니다.
 
 **자동 실행은 응용 프로그램 폴더로 옮긴 뒤에 켜세요.** 경로로 등록되기 때문입니다.
 
