@@ -87,18 +87,22 @@ echo "    $NAME $VERSION ($BUILD)"
 # tell you: every Mach-O needs the hardened runtime and a secure timestamp.
 echo "==> Checking the signature before submitting"
 
-FLAGS="$(codesign -d --verbose=2 "$APP" 2>&1 | sed -n 's/^CodeDirectory.*flags=\([^ ]*\).*/\1/p')"
-case "$FLAGS" in
-    *runtime*) echo "    hardened runtime ok" ;;
-    *) echo "error: the app is not signed with the hardened runtime ($FLAGS)" >&2; exit 1 ;;
+# Read the signature once and match against the text, rather than piping into
+# grep -q. Under `set -o pipefail` that combination reports failure on success:
+# grep exits the moment it matches, codesign takes SIGPIPE writing to the closed
+# pipe, and the pipeline's non-zero status says "no timestamp" about a signature
+# that has one.
+SIGNATURE="$(codesign -dvv "$APP" 2>&1 || true)"
+
+case "$SIGNATURE" in
+    *"flags=0x10000(runtime)"*) echo "    hardened runtime ok" ;;
+    *) echo "error: the app is not signed with the hardened runtime" >&2; exit 1 ;;
 esac
 
-if codesign -dvv "$APP" 2>&1 | grep -q "Timestamp="; then
-    echo "    secure timestamp ok"
-else
-    echo "error: the signature has no secure timestamp — notarisation will reject it" >&2
-    exit 1
-fi
+case "$SIGNATURE" in
+    *Timestamp=*) echo "    secure timestamp ok" ;;
+    *) echo "error: the signature has no secure timestamp — notarisation will reject it" >&2; exit 1 ;;
+esac
 
 codesign --verify --deep --strict --verbose=2 "$APP" 2>&1 | sed 's/^/    /'
 
