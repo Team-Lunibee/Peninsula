@@ -1,4 +1,4 @@
-/* Dynamic — generated from the English source strings.
+/* Peninsula — generated from the English source strings.
    Keys are the English text itself, so an untranslated key still
    renders as readable English rather than as a missing token. */
 
@@ -20,7 +20,7 @@
 "AirDrop All" = "Tout envoyer par AirDrop";
 "AirDrop received" = "AirDrop reçu";
 "AirDrop transfer stopped" = "Transfert AirDrop interrompu";
-"Allow Dynamic in System Settings › General › Login Items." = "Autorisez Dynamic dans Réglages Système › Général › Ouverture à la session.";
+"Allow Peninsula in System Settings › General › Login Items." = "Autorisez Peninsula dans Réglages Système › Général › Ouverture à la session.";
 "Appearance" = "Apparence";
 "Back one frame" = "Une image en arrière";
 "Back to the start" = "Revenir au début";
@@ -53,8 +53,7 @@
 "Downloads and screenshots" = "Téléchargements et captures";
 "Drag files onto the notch" = "Faites glisser des fichiers sur l’encoche";
 "Drop to keep" = "Lâchez pour conserver";
-"Dropped files are copied into a folder of Dynamic’s own, so moving or deleting the original leaves the shelf alone. AirDrop itself is handled by macOS; the notch notices what lands in your Downloads folder, announces it, and keeps a copy on the shelf." = "Les fichiers déposés sont copiés dans un dossier propre à Dynamic : déplacer ou supprimer l’original ne touche pas l’étagère. AirDrop est géré par macOS ; l’encoche repère ce qui arrive dans le dossier Téléchargements, l’annonce et en garde une copie sur l’étagère.";
-"Dynamic is open source under the MIT licence, and bundles mediaremote-adapter under BSD 3-Clause. It comes with no warranty — see the notes on playback access in Features." = "Dynamic est open source sous licence MIT et embarque mediaremote-adapter en BSD 3-Clause. Fourni sans aucune garantie — voir les notes sur l'accès à la lecture dans Fonctions.";
+"Dropped files are copied into a folder of Peninsula’s own, so moving or deleting the original leaves the shelf alone. AirDrop itself is handled by macOS; the notch notices what lands in your Downloads folder, announces it, and keeps a copy on the shelf." = "Les fichiers déposés sont copiés dans un dossier propre à Peninsula : déplacer ou supprimer l’original ne touche pas l’étagère. AirDrop est géré par macOS ; l’encoche repère ce qui arrive dans le dossier Téléchargements, l’annonce et en garde une copie sur l’étagère.";
 "Empty the shelf" = "Vider l’étagère";
 "Enter" = "Entrée";
 "Exclude from screen recordings" = "Exclure des enregistrements d’écran";
@@ -77,7 +76,7 @@
 "Hide lyrics" = "Masquer les paroles";
 "Horizontal / vertical progress" = "Progression horizontale / verticale";
 "Incoming opacity" = "Opacité entrante";
-"Intercepts the keys and draws them in the notch instead of the system overlay. That means seeing the key events before the system does, which is what needs Accessibility permission. If Dynamic is already in the list but this stays off, that entry points at an older signature — remove it and add it again. Keyboard backlight keys have no readable value, so they are passed straight through." = "Intercepte les touches et les affiche dans l’encoche au lieu de l’overlay système. Cela suppose de recevoir les événements clavier avant le système, d’où l’autorisation Accessibilité. Si Dynamic figure déjà dans la liste sans que cela s’active, l’entrée pointe vers une ancienne signature : supprimez-la et rajoutez-la. Les touches de rétroéclairage n’ont aucune valeur lisible et sont transmises telles quelles.";
+"Intercepts the keys and draws them in the notch instead of the system overlay. That means seeing the key events before the system does, which is what needs Accessibility permission. If Peninsula is already in the list but this stays off, that entry points at an older signature — remove it and add it again. Keyboard backlight keys have no readable value, so they are passed straight through." = "Intercepte les touches et les affiche dans l’encoche au lieu de l’overlay système. Cela suppose de recevoir les événements clavier avant le système, d’où l’autorisation Accessibilité. Si Peninsula figure déjà dans la liste sans que cela s’active, l’entrée pointe vers une ancienne signature : supprimez-la et rajoutez-la. Les touches de rétroéclairage n’ont aucune valeur lisible et sont transmises telles quelles.";
 "Keep files for" = "Conserver les fichiers";
 "Keep on shelf" = "Garder sur l’étagère";
 "Keep the meter moving while resting" = "Garder le vumètre animé au repos";
@@ -113,13 +112,14 @@
 "Open the notch to get them back" = "Ouvrez l’encoche pour les récupérer";
 "Outgoing opacity" = "Opacité sortante";
 "Pause" = "Pause";
+"Peninsula is open source under the MIT licence, and bundles mediaremote-adapter under BSD 3-Clause. It comes with no warranty — see the notes on playback access in Features." = "Peninsula est open source sous licence MIT et embarque mediaremote-adapter en BSD 3-Clause. Fourni sans aucune garantie — voir les notes sur l'accès à la lecture dans Fonctions.";
 "Play" = "Lire";
 "Play something in Music, Spotify, or any other player and it appears here" = "Lancez la lecture dans Musique, Spotify ou tout autre lecteur : cela s’affiche ici";
 "Playback access" = "Accès aux infos de lecture";
 "Playback information unavailable" = "Infos de lecture indisponibles";
 "Power and battery" = "Alimentation et batterie";
 "Put AirDrop arrivals on the shelf" = "Placer les réceptions AirDrop sur l’étagère";
-"Quit Dynamic" = "Quitter Dynamic";
+"Quit Peninsula" = "Quitter Peninsula";
 "Receiving AirDrop" = "Réception AirDrop";
 "Reduce Motion is on in Accessibility, so every animation is replaced by a fade." = "« Réduire les animations » est activé dans Accessibilité : toutes les animations sont remplacées par un fondu.";
 "Remove" = "Retirer";
@@ -141,7 +141,7 @@
 "Show the visualiser" = "Afficher le visualiseur";
 "Show the volume and brightness HUD in the notch" = "Afficher le HUD de volume et de luminosité dans l’encoche";
 "Shuffle" = "Aléatoire";
-"Since macOS 15.4, MediaRemote is reachable only by Apple’s own processes. Dynamic reads playback information through the system perl binary, which is still entitled. If a future update closes that path, the notch says so rather than going quiet." = "Depuis macOS 15.4, MediaRemote n’est accessible qu’aux processus d’Apple. Dynamic lit les infos de lecture via le binaire perl du système, encore habilité. Si une mise à jour ferme ce chemin, l’encoche le signale au lieu de rester muette.";
+"Since macOS 15.4, MediaRemote is reachable only by Apple’s own processes. Peninsula reads playback information through the system perl binary, which is still entitled. If a future update closes that path, the notch says so rather than going quiet." = "Depuis macOS 15.4, MediaRemote n’est accessible qu’aux processus d’Apple. Peninsula lit les infos de lecture via le binaire perl du système, encore habilité. Si une mise à jour ferme ce chemin, l’encoche le signale au lieu de rester muette.";
 "Size" = "Taille";
 "Source and releases" = "Code source et releases";
 "Spring" = "Ressort";
@@ -160,15 +160,15 @@
 "Turn off shuffle" = "Désactiver l’aléatoire";
 "Unknown artist" = "Artiste inconnu";
 "Up to date" = "À jour";
-"Updates are published as GitHub releases. Dynamic only tells you one exists and opens the page — it never replaces itself, which keeps an auto-updater's worth of attack surface out of the app." = "Les mises à jour sont publiées comme releases GitHub. Dynamic se contente de signaler qu'il en existe une et d'ouvrir la page ; il ne se remplace jamais lui-même, ce qui épargne à l'app toute la surface d'attaque d'un updater automatique.";
+"Updates are published as GitHub releases. Peninsula only tells you one exists and opens the page — it never replaces itself, which keeps an auto-updater's worth of attack surface out of the app." = "Les mises à jour sont publiées comme releases GitHub. Peninsula se contente de signaler qu'il en existe une et d'ouvrir la page ; il ne se remplace jamais lui-même, ce qui épargne à l'app toute la surface d'attaque d'un updater automatique.";
 "Use the file shelf" = "Utiliser l’étagère de fichiers";
 "Uses Apple’s own spring notation — duration plus bounce. Like the Island is 340ms at 0.18, Bouncy is 460ms at 0.28, Gentle is 580ms at 0.04. Closing is a little shorter with 0.12 more bounce, so it undershoots the resting size and settles back. The exact curves are in the Motion Lab tab, frame by frame." = "Reprend la notation de ressort d’Apple : durée plus rebond. « Comme l’Île » : 340 ms à 0,18 ; « Rebondissant » : 460 ms à 0,28 ; « Doux » : 580 ms à 0,04. La fermeture est un peu plus courte avec 0,12 de rebond en plus : elle passe sous la taille de repos avant de revenir. Les courbes exactes sont dans l’onglet Labo de mouvement, image par image.";
 "Version" = "Version";
 "Volume for this app" = "Volume de cette app";
-"Waiting for Accessibility permission. Allow Dynamic in System Settings and this turns itself on — no relaunch needed." = "En attente de l’autorisation Accessibilité. Autorisez Dynamic dans Réglages Système et cela s’active tout seul, sans relancer.";
+"Waiting for Accessibility permission. Allow Peninsula in System Settings and this turns itself on — no relaunch needed." = "En attente de l’autorisation Accessibilité. Autorisez Peninsula dans Réglages Système et cela s’active tout seul, sans relancer.";
 "Website" = "Site web";
 "When idle, show" = "Au repos, afficher";
 "With this off, the notch opens on a click instead." = "Désactivé, l’encoche s’ouvre par un clic.";
 "Working" = "Actif";
-"macOS reads this before the app's text is loaded, so it applies the next time Dynamic starts." = "macOS lit ce réglage avant de charger les textes de l'app : il s'applique au prochain démarrage de Dynamic.";
+"macOS reads this before the app's text is loaded, so it applies the next time Peninsula starts." = "macOS lit ce réglage avant de charger les textes de l'app : il s'applique au prochain démarrage de Peninsula.";
 "via mediaremote-adapter" = "via mediaremote-adapter";

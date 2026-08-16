@@ -1,5 +1,5 @@
 /* Info.plist usage descriptions. */
 
 "NSAppleEventsUsageDescription" = "用于从刘海控制“音乐”和 Spotify 的播放。";
-"NSDesktopFolderUsageDescription" = "用于将拖到刘海上的文件保存到 Dynamic 的文件架文件夹。";
-"NSDownloadsFolderUsageDescription" = "用于将拖到刘海上的文件保存到 Dynamic 的文件架文件夹。";
+"NSDesktopFolderUsageDescription" = "用于将拖到刘海上的文件保存到 Peninsula 的文件架文件夹。";
+"NSDownloadsFolderUsageDescription" = "用于将拖到刘海上的文件保存到 Peninsula 的文件架文件夹。";

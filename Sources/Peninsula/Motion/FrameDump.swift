@@ -7,7 +7,7 @@ import SwiftUI
 
 /// Renders a transition to a contact sheet, one cell per frame.
 ///
-/// Run with `Dynamic --dump-frames <directory>`. It exists so the animation can
+/// Run with `Peninsula --dump-frames <directory>`. It exists so the animation can
 /// be *looked at* rather than only described: springs are easy to reason about
 /// wrongly, and a filmstrip shows immediately whether the shape passes through
 /// states that make sense.

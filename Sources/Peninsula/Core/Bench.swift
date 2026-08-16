@@ -6,7 +6,7 @@ import UniformTypeIdentifiers
 /// Drives the notch through real transitions so cost can be measured from
 /// outside with `top`/`footprint`.
 ///
-/// Off unless `DYNAMIC_BENCH` is set, and never referenced from the UI — the
+/// Off unless `PENINSULA_BENCH` is set, and never referenced from the UI — the
 /// point is to exercise exactly the code path a hover does, not a special one.
 @MainActor
 enum Bench {
@@ -17,16 +17,16 @@ enum Bench {
     }
 
     static func startIfRequested(model: NotchViewModel, controller: NotchController? = nil) {
-        guard let mode = ProcessInfo.processInfo.environment["DYNAMIC_BENCH"] else { return }
+        guard let mode = ProcessInfo.processInfo.environment["PENINSULA_BENCH"] else { return }
 
-        let cycles = ProcessInfo.processInfo.environment["DYNAMIC_BENCH_CYCLES"]
+        let cycles = ProcessInfo.processInfo.environment["PENINSULA_BENCH_CYCLES"]
             .flatMap(Int.init) ?? 40
 
-        if ProcessInfo.processInfo.environment["DYNAMIC_BENCH_TRACK"] != nil {
+        if ProcessInfo.processInfo.environment["PENINSULA_BENCH_TRACK"] != nil {
             injectTrack(into: model.media)
         }
 
-        if let tab = ProcessInfo.processInfo.environment["DYNAMIC_BENCH_TAB"],
+        if let tab = ProcessInfo.processInfo.environment["PENINSULA_BENCH_TAB"],
            let selected = NotchTab(rawValue: tab) {
             model.tab = selected
         }
@@ -344,7 +344,7 @@ enum Bench {
         case "shelffill":
             Task { @MainActor in
                 try? await Task.sleep(for: .seconds(3))
-                let count = ProcessInfo.processInfo.environment["DYNAMIC_BENCH_SHELF_N"]
+                let count = ProcessInfo.processInfo.environment["PENINSULA_BENCH_SHELF_N"]
                     .flatMap(Int.init) ?? 120
                 let shelf = model.shelf
                 let temp = FileManager.default.temporaryDirectory
@@ -517,8 +517,8 @@ enum Bench {
     private static func injectTrack(into media: MediaEngine) {
         let now = Int64(Date().timeIntervalSince1970 * 1_000_000)
         media.ingestForBench([
-            "bundleIdentifier": ProcessInfo.processInfo.environment["DYNAMIC_BENCH_BUNDLE"] ?? "com.apple.Music",
-            "title": ProcessInfo.processInfo.environment["DYNAMIC_SHORT_TITLE"] == nil ? "Bench Track With A Deliberately Long Title" : "Short",
+            "bundleIdentifier": ProcessInfo.processInfo.environment["PENINSULA_BENCH_BUNDLE"] ?? "com.apple.Music",
+            "title": ProcessInfo.processInfo.environment["PENINSULA_SHORT_TITLE"] == nil ? "Bench Track With A Deliberately Long Title" : "Short",
             "artist": "Benchmark Artist",
             "album": "Benchmark Album",
             "playing": true,
@@ -526,8 +526,8 @@ enum Bench {
             "durationMicros": 213_000_000,
             "elapsedTimeMicros": 41_000_000,
             "timestampEpochMicros": now,
-            "shuffleMode": ProcessInfo.processInfo.environment["DYNAMIC_BENCH_NOMODES"] == nil ? 3 : NSNull(),
-            "repeatMode": ProcessInfo.processInfo.environment["DYNAMIC_BENCH_NOMODES"] == nil ? 3 : NSNull(),
+            "shuffleMode": ProcessInfo.processInfo.environment["PENINSULA_BENCH_NOMODES"] == nil ? 3 : NSNull(),
+            "repeatMode": ProcessInfo.processInfo.environment["PENINSULA_BENCH_NOMODES"] == nil ? 3 : NSNull(),
             "artworkData": artworkBase64(),
         ])
     }
@@ -628,9 +628,9 @@ enum Bench {
             try? await Task.sleep(for: .seconds(5))
             SettingsWindow.show()
             try? await Task.sleep(for: .seconds(1))
-            NSApp.windows.first { $0.title == "Dynamic" }?.orderFrontRegardless()
+            NSApp.windows.first { $0.title == "Peninsula" }?.orderFrontRegardless()
             try? await Task.sleep(for: .seconds(7))
-            let settings = NSApp.windows.first { $0.title == "Dynamic" }
+            let settings = NSApp.windows.first { $0.title == "Peninsula" }
             note("bench: closing settings window (found: \(settings != nil))")
             settings?.close()
             try? await Task.sleep(for: .seconds(2))
@@ -678,7 +678,7 @@ enum Bench {
             for (index, gap) in gaps.enumerated() {
                 let now = Int64(Date().timeIntervalSince1970 * 1_000_000)
                 model.media.ingestForBench([
-                    "bundleIdentifier": ProcessInfo.processInfo.environment["DYNAMIC_BENCH_BUNDLE"] ?? "com.apple.Music",
+                    "bundleIdentifier": ProcessInfo.processInfo.environment["PENINSULA_BENCH_BUNDLE"] ?? "com.apple.Music",
                     "title": "Storm Track \(index + 1)",
                     "artist": "Artist \(index + 1)",
                     "album": "Storm",

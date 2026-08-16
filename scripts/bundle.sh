@@ -1,5 +1,5 @@
 #!/bin/bash
-# Builds Dynamic.app from the SwiftPM executable.
+# Builds Peninsula.app from the SwiftPM executable.
 #
 # SwiftPM produces a bare Mach-O; a menu-bar agent needs a real bundle for
 # LSUIElement, its Info.plist, and the entitlements the media bridge relies on.
@@ -7,7 +7,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CONFIG="${1:-release}"
-NAME="Dynamic"
+NAME="Peninsula"
 APP="$ROOT/build/$NAME.app"
 ADAPTER="$ROOT/.build/mediaremote-adapter"
 
@@ -18,7 +18,7 @@ fi
 
 # The Motion Lab and the frame dumper are compiled in unless this is a release.
 # They exist for tuning the animation, and neither belongs in a build that goes
-# to someone who just wants the app. scripts/release.sh sets DYNAMIC_RELEASE=1;
+# to someone who just wants the app. scripts/release.sh sets PENINSULA_RELEASE=1;
 # building here by hand keeps them.
 #
 # Each variant gets its own scratch path, and that is not tidiness. SwiftPM does
@@ -28,7 +28,7 @@ fi
 # from a dev build. Separate paths make the two impossible to confuse.
 BUILD_FLAGS=()
 SCRATCH="$ROOT/.build"
-if [ "${DYNAMIC_RELEASE:-0}" = "1" ]; then
+if [ "${PENINSULA_RELEASE:-0}" = "1" ]; then
     SCRATCH="$ROOT/.build-release"
     echo "==> Release build — dev tools excluded"
 else
@@ -38,7 +38,7 @@ fi
 echo "==> swift build -c $CONFIG"
 cd "$ROOT"
 swift build -c "$CONFIG" --scratch-path "$SCRATCH" "${BUILD_FLAGS[@]}"
-BINARY="$(swift build -c "$CONFIG" --scratch-path "$SCRATCH" "${BUILD_FLAGS[@]}" --show-bin-path)/Dynamic"
+BINARY="$(swift build -c "$CONFIG" --scratch-path "$SCRATCH" "${BUILD_FLAGS[@]}" --show-bin-path)/Peninsula"
 
 if [ ! -f "$BINARY" ]; then
     echo "error: built binary not found at $BINARY" >&2
@@ -49,12 +49,12 @@ echo "==> Assembling $APP"
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources" "$APP/Contents/Frameworks"
 
-cp "$BINARY" "$APP/Contents/MacOS/Dynamic"
+cp "$BINARY" "$APP/Contents/MacOS/Peninsula"
 cp "$ROOT/Resources/Info.plist" "$APP/Contents/Info.plist"
 printf 'APPL????' > "$APP/Contents/PkgInfo"
 
 # Localisations go straight into Contents/Resources, which is where Bundle.main
-# looks. SwiftPM would otherwise put them in a Dynamic_Dynamic.bundle beside the
+# looks. SwiftPM would otherwise put them in a Peninsula_Peninsula.bundle beside the
 # binary — invisible to this hand-assembled app, and every string would silently
 # fall back to its English key.
 for LPROJ in "$ROOT"/Resources/*.lproj; do
@@ -76,6 +76,16 @@ cp "$ADAPTER/LICENSE-mediaremote-adapter" "$APP/Contents/Resources/"
 # granted, while the stale entry stays in System Settings looking enabled.
 # Pin one explicitly with:
 #   SIGN_IDENTITY="Apple Development: you@example.com" ./scripts/bundle.sh
+# Developer ID first, not simply the first identity in the list. macOS keys
+# privacy grants to the signature, so a dev build signed with one certificate
+# and a release signed with another are two different apps to it: testing here
+# would grant permissions the shipped copy does not inherit. Preferring the
+# release certificate everywhere means the app being tested is the app that
+# ships. Anything else is a fallback for a machine without one.
+if [ -z "${SIGN_IDENTITY:-}" ]; then
+    SIGN_IDENTITY="$(security find-identity -v -p codesigning 2>/dev/null \
+        | sed -n 's/.*"\(Developer ID Application:.*\)"/\1/p' | head -1)"
+fi
 if [ -z "${SIGN_IDENTITY:-}" ]; then
     SIGN_IDENTITY="$(security find-identity -v -p codesigning 2>/dev/null \
         | sed -n 's/.*"\(.*\)"/\1/p' | head -1)"
@@ -104,7 +114,7 @@ codesign --force --sign "$IDENTITY" "${TIMESTAMP[@]}" \
 
 codesign --force --sign "$IDENTITY" "${TIMESTAMP[@]}" \
     --options runtime \
-    --entitlements "$ROOT/Resources/Dynamic.entitlements" \
+    --entitlements "$ROOT/Resources/Peninsula.entitlements" \
     "$APP" >/dev/null
 
 echo "==> Verifying"
@@ -113,7 +123,7 @@ codesign --verify --deep --strict "$APP" && echo "    signature ok"
 # Install over the copy that is actually used.
 #
 # The login item registers a path, and macOS keys privacy grants to the bundle
-# at that path, so /Applications/Dynamic.app has to be the build you just made
+# at that path, so /Applications/Peninsula.app has to be the build you just made
 # — otherwise you spend an afternoon fixing something and keep running the
 # version from this morning. Replacing in place keeps the path, and the
 # signature is unchanged, so Accessibility and Focus survive.

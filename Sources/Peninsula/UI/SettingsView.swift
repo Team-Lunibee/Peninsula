@@ -19,7 +19,7 @@ enum SettingsWindow {
 
         let hosting = NSHostingController(rootView: SettingsView())
         let created = NSWindow(contentViewController: hosting)
-        created.title = "Dynamic"
+        created.title = "Peninsula"
         created.styleMask = [.titled, .closable, .miniaturizable]
         created.isReleasedWhenClosed = false
         // Torn down on close, not kept around.
@@ -124,9 +124,9 @@ struct SettingsView: View {
                     }
                 }
             } header: {
-                Text("Dynamic")
+                Text("Peninsula")
             } footer: {
-                Text("Updates are published as GitHub releases. Dynamic only tells you one exists and opens the page — it never replaces itself, which keeps an auto-updater's worth of attack surface out of the app.")
+                Text("Updates are published as GitHub releases. Peninsula only tells you one exists and opens the page — it never replaces itself, which keeps an auto-updater's worth of attack surface out of the app.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -141,7 +141,7 @@ struct SettingsView: View {
                     AppLanguage.select(selected)
                 }
             } footer: {
-                Text("macOS reads this before the app's text is loaded, so it applies the next time Dynamic starts.")
+                Text("macOS reads this before the app's text is loaded, so it applies the next time Peninsula starts.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -154,7 +154,7 @@ struct SettingsView: View {
                     Link("GitHub", destination: UpdateCheck.sourcePage)
                 }
             } footer: {
-                Text("Dynamic is open source under the MIT licence, and bundles mediaremote-adapter under BSD 3-Clause. It comes with no warranty — see the notes on playback access in Features.")
+                Text("Peninsula is open source under the MIT licence, and bundles mediaremote-adapter under BSD 3-Clause. It comes with no warranty — see the notes on playback access in Features.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -291,7 +291,7 @@ struct SettingsView: View {
                             .foregroundStyle(.green)
                     } else {
                         VStack(alignment: .leading, spacing: 6) {
-                            Text("Waiting for Accessibility permission. Allow Dynamic in System Settings and this turns itself on — no relaunch needed.")
+                            Text("Waiting for Accessibility permission. Allow Peninsula in System Settings and this turns itself on — no relaunch needed.")
                             Button("Open Accessibility settings") {
                                 NSWorkspace.shared.open(URL(
                                     string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
@@ -304,7 +304,7 @@ struct SettingsView: View {
                     }
                 }
             } footer: {
-                Text("Intercepts the keys and draws them in the notch instead of the system overlay. That means seeing the key events before the system does, which is what needs Accessibility permission. If Dynamic is already in the list but this stays off, that entry points at an older signature — remove it and add it again. Keyboard backlight keys have no readable value, so they are passed straight through.")
+                Text("Intercepts the keys and draws them in the notch instead of the system overlay. That means seeing the key events before the system does, which is what needs Accessibility permission. If Peninsula is already in the list but this stays off, that entry points at an older signature — remove it and add it again. Keyboard backlight keys have no readable value, so they are passed straight through.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -429,7 +429,7 @@ struct SettingsView: View {
                         .foregroundStyle(.secondary)
                 }
             } footer: {
-                Text("Dropped files are copied into a folder of Dynamic’s own, so moving or deleting the original leaves the shelf alone. AirDrop itself is handled by macOS; the notch notices what lands in your Downloads folder, announces it, and keeps a copy on the shelf.")
+                Text("Dropped files are copied into a folder of Peninsula’s own, so moving or deleting the original leaves the shelf alone. AirDrop itself is handled by macOS; the notch notices what lands in your Downloads folder, announces it, and keeps a copy on the shelf.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -440,7 +440,7 @@ struct SettingsView: View {
                         .foregroundStyle(.secondary)
                 }
             } footer: {
-                Text("Since macOS 15.4, MediaRemote is reachable only by Apple’s own processes. Dynamic reads playback information through the system perl binary, which is still entitled. If a future update closes that path, the notch says so rather than going quiet.")
+                Text("Since macOS 15.4, MediaRemote is reachable only by Apple’s own processes. Peninsula reads playback information through the system perl binary, which is still entitled. If a future update closes that path, the notch says so rather than going quiet.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

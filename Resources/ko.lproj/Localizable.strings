@@ -1,4 +1,4 @@
-/* Dynamic — generated from the English source strings.
+/* Peninsula — generated from the English source strings.
    Keys are the English text itself, so an untranslated key still
    renders as readable English rather than as a missing token. */
 
@@ -20,7 +20,7 @@
 "AirDrop All" = "전체 AirDrop";
 "AirDrop received" = "AirDrop 받음";
 "AirDrop transfer stopped" = "AirDrop 전송 중단됨";
-"Allow Dynamic in System Settings › General › Login Items." = "시스템 설정 › 일반 › 로그인 항목에서 Dynamic을 허용해야 합니다.";
+"Allow Peninsula in System Settings › General › Login Items." = "시스템 설정 › 일반 › 로그인 항목에서 Peninsula를 허용해야 합니다.";
 "Appearance" = "모양";
 "Back one frame" = "한 프레임 뒤로";
 "Back to the start" = "처음으로";
@@ -53,8 +53,7 @@
 "Downloads and screenshots" = "다운로드·스크린샷 완료";
 "Drag files onto the notch" = "노치 위로 파일을 끌어다 놓으세요";
 "Drop to keep" = "놓으면 보관됩니다";
-"Dropped files are copied into a folder of Dynamic’s own, so moving or deleting the original leaves the shelf alone. AirDrop itself is handled by macOS; the notch notices what lands in your Downloads folder, announces it, and keeps a copy on the shelf." = "끌어다 놓은 파일은 Dynamic 전용 폴더로 복사됩니다. 원본을 옮기거나 지워도 선반은 그대로 유지됩니다. AirDrop 수신은 macOS가 처리하며, 다운로드 폴더에 도착한 파일을 노치가 알려주고 선반에 함께 담아둡니다.";
-"Dynamic is open source under the MIT licence, and bundles mediaremote-adapter under BSD 3-Clause. It comes with no warranty — see the notes on playback access in Features." = "Dynamic은 MIT 라이선스로 공개된 오픈소스이며, mediaremote-adapter(BSD 3-Clause)를 함께 담고 있습니다. 어떠한 보증도 제공하지 않습니다 — 재생 정보 접근에 관한 설명은 ‘기능’ 탭을 보세요.";
+"Dropped files are copied into a folder of Peninsula’s own, so moving or deleting the original leaves the shelf alone. AirDrop itself is handled by macOS; the notch notices what lands in your Downloads folder, announces it, and keeps a copy on the shelf." = "끌어다 놓은 파일은 Peninsula 전용 폴더로 복사됩니다. 원본을 옮기거나 지워도 선반은 그대로 유지됩니다. AirDrop 수신은 macOS가 처리하며, 다운로드 폴더에 도착한 파일을 노치가 알려주고 선반에 함께 담아둡니다.";
 "Empty the shelf" = "선반 비우기";
 "Enter" = "등장";
 "Exclude from screen recordings" = "화면 녹화에서 제외";
@@ -77,7 +76,7 @@
 "Hide lyrics" = "가사 숨기기";
 "Horizontal / vertical progress" = "가로 / 세로 진행";
 "Incoming opacity" = "들어오는 불투명도";
-"Intercepts the keys and draws them in the notch instead of the system overlay. That means seeing the key events before the system does, which is what needs Accessibility permission. If Dynamic is already in the list but this stays off, that entry points at an older signature — remove it and add it again. Keyboard backlight keys have no readable value, so they are passed straight through." = "키를 가로채 시스템 오버레이 대신 노치에 표시합니다. 그러려면 키 이벤트를 시스템보다 먼저 받아야 해서 손쉬운 사용 권한이 필요합니다. 목록에 Dynamic이 이미 있는데도 켜지지 않으면, 그 항목은 예전 서명을 가리키는 것이니 지우고 다시 추가하세요. 키보드 백라이트 키는 읽을 수 있는 값이 없어 시스템에 그대로 넘깁니다.";
+"Intercepts the keys and draws them in the notch instead of the system overlay. That means seeing the key events before the system does, which is what needs Accessibility permission. If Peninsula is already in the list but this stays off, that entry points at an older signature — remove it and add it again. Keyboard backlight keys have no readable value, so they are passed straight through." = "키를 가로채 시스템 오버레이 대신 노치에 표시합니다. 그러려면 키 이벤트를 시스템보다 먼저 받아야 해서 손쉬운 사용 권한이 필요합니다. 목록에 Peninsula가 이미 있는데도 켜지지 않으면, 그 항목은 예전 서명을 가리키는 것이니 지우고 다시 추가하세요. 키보드 백라이트 키는 읽을 수 있는 값이 없어 시스템에 그대로 넘깁니다.";
 "Keep files for" = "보관 기간";
 "Keep on shelf" = "선반에 보관";
 "Keep the meter moving while resting" = "쉬는 중에도 미터 움직이기";
@@ -113,13 +112,14 @@
 "Open the notch to get them back" = "노치를 열어 다시 꺼낼 수 있어요";
 "Outgoing opacity" = "나가는 불투명도";
 "Pause" = "일시정지";
+"Peninsula is open source under the MIT licence, and bundles mediaremote-adapter under BSD 3-Clause. It comes with no warranty — see the notes on playback access in Features." = "Peninsula는 MIT 라이선스로 공개된 오픈소스이며, mediaremote-adapter(BSD 3-Clause)를 함께 담고 있습니다. 어떠한 보증도 제공하지 않습니다 — 재생 정보 접근에 관한 설명은 ‘기능’ 탭을 보세요.";
 "Play" = "재생";
 "Play something in Music, Spotify, or any other player and it appears here" = "음악, Spotify 등 어떤 플레이어든 재생하면 여기에 나타납니다";
 "Playback access" = "재생 정보 접근";
 "Playback information unavailable" = "재생 정보를 가져올 수 없음";
 "Power and battery" = "충전·배터리 상태";
 "Put AirDrop arrivals on the shelf" = "AirDrop으로 받은 파일 선반에 담기";
-"Quit Dynamic" = "Dynamic 종료";
+"Quit Peninsula" = "Peninsula 종료";
 "Receiving AirDrop" = "AirDrop 받는 중";
 "Reduce Motion is on in Accessibility, so every animation is replaced by a fade." = "손쉬운 사용에서 ‘동작 줄이기’가 켜져 있어 모든 애니메이션이 페이드로 대체됩니다.";
 "Remove" = "제거";
@@ -141,7 +141,7 @@
 "Show the visualiser" = "비주얼라이저 표시";
 "Show the volume and brightness HUD in the notch" = "볼륨·밝기 HUD를 노치에 표시";
 "Shuffle" = "셔플";
-"Since macOS 15.4, MediaRemote is reachable only by Apple’s own processes. Dynamic reads playback information through the system perl binary, which is still entitled. If a future update closes that path, the notch says so rather than going quiet." = "macOS 15.4부터 MediaRemote는 Apple 자체 프로세스만 접근할 수 있습니다. Dynamic은 아직 권한이 남아 있는 시스템 perl 바이너리를 통해 재생 정보를 읽습니다. 향후 업데이트로 이 경로가 막히면 조용히 멈추는 대신 노치에 그 사실을 표시합니다.";
+"Since macOS 15.4, MediaRemote is reachable only by Apple’s own processes. Peninsula reads playback information through the system perl binary, which is still entitled. If a future update closes that path, the notch says so rather than going quiet." = "macOS 15.4부터 MediaRemote는 Apple 자체 프로세스만 접근할 수 있습니다. Peninsula는 아직 권한이 남아 있는 시스템 perl 바이너리를 통해 재생 정보를 읽습니다. 향후 업데이트로 이 경로가 막히면 조용히 멈추는 대신 노치에 그 사실을 표시합니다.";
 "Size" = "크기";
 "Source and releases" = "소스와 릴리스";
 "Spring" = "스프링";
@@ -160,15 +160,15 @@
 "Turn off shuffle" = "셔플 끄기";
 "Unknown artist" = "아티스트 정보 없음";
 "Up to date" = "최신 버전입니다";
-"Updates are published as GitHub releases. Dynamic only tells you one exists and opens the page — it never replaces itself, which keeps an auto-updater's worth of attack surface out of the app." = "업데이트는 GitHub 릴리스로 배포됩니다. Dynamic은 새 버전이 있다는 사실만 알리고 페이지를 열 뿐, 스스로를 교체하지 않습니다 — 자동 업데이터만큼의 공격 표면을 앱에서 덜어내기 위해서입니다.";
+"Updates are published as GitHub releases. Peninsula only tells you one exists and opens the page — it never replaces itself, which keeps an auto-updater's worth of attack surface out of the app." = "업데이트는 GitHub 릴리스로 배포됩니다. Peninsula는 새 버전이 있다는 사실만 알리고 페이지를 열 뿐, 스스로를 교체하지 않습니다 — 자동 업데이터만큼의 공격 표면을 앱에서 덜어내기 위해서입니다.";
 "Use the file shelf" = "파일 선반 사용";
 "Uses Apple’s own spring notation — duration plus bounce. Like the Island is 340ms at 0.18, Bouncy is 460ms at 0.28, Gentle is 580ms at 0.04. Closing is a little shorter with 0.12 more bounce, so it undershoots the resting size and settles back. The exact curves are in the Motion Lab tab, frame by frame." = "Apple의 스프링 표기(지속 시간 + 반동)를 그대로 씁니다. ‘아일랜드 기준’ 340ms·반동 0.18, ‘탄력 있게’ 460ms·0.28, ‘부드럽게’ 580ms·0.04. 닫힐 때는 조금 짧고 반동이 0.12 더해져서, 쉬는 크기보다 더 줄었다가 되돌아옵니다. 정확한 곡선은 ‘모션 실험실’ 탭에서 프레임 단위로 볼 수 있습니다.";
 "Version" = "버전";
 "Volume for this app" = "이 앱의 음량";
-"Waiting for Accessibility permission. Allow Dynamic in System Settings and this turns itself on — no relaunch needed." = "손쉬운 사용 권한을 기다리는 중입니다. 시스템 설정에서 Dynamic을 허용하면 앱을 다시 실행하지 않아도 바로 켜집니다.";
+"Waiting for Accessibility permission. Allow Peninsula in System Settings and this turns itself on — no relaunch needed." = "손쉬운 사용 권한을 기다리는 중입니다. 시스템 설정에서 Peninsula를 허용하면 앱을 다시 실행하지 않아도 바로 켜집니다.";
 "Website" = "웹사이트";
 "When idle, show" = "대기 중 표시";
 "With this off, the notch opens on a click instead." = "끄면 노치를 클릭해야 열립니다.";
 "Working" = "동작 중";
-"macOS reads this before the app's text is loaded, so it applies the next time Dynamic starts." = "macOS가 앱의 텍스트를 불러오기 전에 이 값을 읽기 때문에, 다음에 Dynamic을 실행할 때 적용됩니다.";
+"macOS reads this before the app's text is loaded, so it applies the next time Peninsula starts." = "macOS가 앱의 텍스트를 불러오기 전에 이 값을 읽기 때문에, 다음에 Peninsula를 실행할 때 적용됩니다.";
 "via mediaremote-adapter" = "mediaremote-adapter 경유";

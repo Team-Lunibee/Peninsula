@@ -293,7 +293,7 @@ final class AppPlayback {
 final class ScriptRunner: @unchecked Sendable {
     static let shared = ScriptRunner()
 
-    private let queue = DispatchQueue(label: "dev.anbam.Dynamic.applescript")
+    private let queue = DispatchQueue(label: "kr.lunibee.peninsula.applescript")
     private var compiled: [String: NSAppleScript] = [:]
 
     func run(

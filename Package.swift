@@ -2,12 +2,12 @@
 import PackageDescription
 
 let package = Package(
-    name: "Dynamic",
+    name: "Peninsula",
     platforms: [.macOS(.v14)],
     targets: [
         .executableTarget(
-            name: "Dynamic",
-            path: "Sources/Dynamic",
+            name: "Peninsula",
+            path: "Sources/Peninsula",
             swiftSettings: [.swiftLanguageMode(.v5)]
         )
     ]

@@ -1,4 +1,4 @@
-/* Dynamic — generated from the English source strings.
+/* Peninsula — generated from the English source strings.
    Keys are the English text itself, so an untranslated key still
    renders as readable English rather than as a missing token. */
 
@@ -20,7 +20,7 @@
 "AirDrop All" = "全部 AirDrop";
 "AirDrop received" = "已接收 AirDrop";
 "AirDrop transfer stopped" = "AirDrop 传输已中断";
-"Allow Dynamic in System Settings › General › Login Items." = "请在“系统设置 › 通用 › 登录项”中允许 Dynamic。";
+"Allow Peninsula in System Settings › General › Login Items." = "请在“系统设置 › 通用 › 登录项”中允许 Peninsula。";
 "Appearance" = "外观";
 "Back one frame" = "后退一帧";
 "Back to the start" = "回到开头";
@@ -53,8 +53,7 @@
 "Downloads and screenshots" = "下载与截屏";
 "Drag files onto the notch" = "把文件拖到刘海上";
 "Drop to keep" = "松开即可保存";
-"Dropped files are copied into a folder of Dynamic’s own, so moving or deleting the original leaves the shelf alone. AirDrop itself is handled by macOS; the notch notices what lands in your Downloads folder, announces it, and keeps a copy on the shelf." = "拖入的文件会复制到 Dynamic 自己的文件夹中，因此移动或删除原文件不会影响文件架。AirDrop 本身由 macOS 处理；刘海会留意“下载”文件夹中新到的文件，予以提示并在文件架上保留一份。";
-"Dynamic is open source under the MIT licence, and bundles mediaremote-adapter under BSD 3-Clause. It comes with no warranty — see the notes on playback access in Features." = "Dynamic 是基于 MIT 许可证的开源软件，并附带 mediaremote-adapter（BSD 3-Clause）。不提供任何担保——有关播放信息访问的说明请见“功能”标签。";
+"Dropped files are copied into a folder of Peninsula’s own, so moving or deleting the original leaves the shelf alone. AirDrop itself is handled by macOS; the notch notices what lands in your Downloads folder, announces it, and keeps a copy on the shelf." = "拖入的文件会复制到 Peninsula 自己的文件夹中，因此移动或删除原文件不会影响文件架。AirDrop 本身由 macOS 处理；刘海会留意“下载”文件夹中新到的文件，予以提示并在文件架上保留一份。";
 "Empty the shelf" = "清空文件架";
 "Enter" = "进入";
 "Exclude from screen recordings" = "从屏幕录制中排除";
@@ -77,7 +76,7 @@
 "Hide lyrics" = "隐藏歌词";
 "Horizontal / vertical progress" = "水平 / 垂直进度";
 "Incoming opacity" = "进入不透明度";
-"Intercepts the keys and draws them in the notch instead of the system overlay. That means seeing the key events before the system does, which is what needs Accessibility permission. If Dynamic is already in the list but this stays off, that entry points at an older signature — remove it and add it again. Keyboard backlight keys have no readable value, so they are passed straight through." = "拦截按键并在刘海中绘制，取代系统浮层。这需要先于系统接收按键事件，因此需要辅助功能权限。如果列表中已有 Dynamic 却仍未启用，说明该条目指向旧签名——请删除后重新添加。键盘背光键没有可读取的数值，因此会直接交给系统处理。";
+"Intercepts the keys and draws them in the notch instead of the system overlay. That means seeing the key events before the system does, which is what needs Accessibility permission. If Peninsula is already in the list but this stays off, that entry points at an older signature — remove it and add it again. Keyboard backlight keys have no readable value, so they are passed straight through." = "拦截按键并在刘海中绘制，取代系统浮层。这需要先于系统接收按键事件，因此需要辅助功能权限。如果列表中已有 Peninsula 却仍未启用，说明该条目指向旧签名——请删除后重新添加。键盘背光键没有可读取的数值，因此会直接交给系统处理。";
 "Keep files for" = "保留时长";
 "Keep on shelf" = "存入文件架";
 "Keep the meter moving while resting" = "静止时保持仪表跳动";
@@ -113,13 +112,14 @@
 "Open the notch to get them back" = "打开刘海即可取回";
 "Outgoing opacity" = "退出不透明度";
 "Pause" = "暂停";
+"Peninsula is open source under the MIT licence, and bundles mediaremote-adapter under BSD 3-Clause. It comes with no warranty — see the notes on playback access in Features." = "Peninsula 是基于 MIT 许可证的开源软件，并附带 mediaremote-adapter（BSD 3-Clause）。不提供任何担保——有关播放信息访问的说明请见“功能”标签。";
 "Play" = "播放";
 "Play something in Music, Spotify, or any other player and it appears here" = "在“音乐”、Spotify 或任何其他播放器中播放，都会显示在这里";
 "Playback access" = "播放信息访问";
 "Playback information unavailable" = "无法获取播放信息";
 "Power and battery" = "电源与电池";
 "Put AirDrop arrivals on the shelf" = "将 AirDrop 收到的文件放入文件架";
-"Quit Dynamic" = "退出 Dynamic";
+"Quit Peninsula" = "退出 Peninsula";
 "Receiving AirDrop" = "正在接收 AirDrop";
 "Reduce Motion is on in Accessibility, so every animation is replaced by a fade." = "辅助功能中已开启“减弱动态效果”，因此所有动画都会替换为淡入淡出。";
 "Remove" = "移除";
@@ -141,7 +141,7 @@
 "Show the visualiser" = "显示可视化效果";
 "Show the volume and brightness HUD in the notch" = "在刘海中显示音量与亮度 HUD";
 "Shuffle" = "随机播放";
-"Since macOS 15.4, MediaRemote is reachable only by Apple’s own processes. Dynamic reads playback information through the system perl binary, which is still entitled. If a future update closes that path, the notch says so rather than going quiet." = "自 macOS 15.4 起，MediaRemote 仅限 Apple 自家进程访问。Dynamic 通过仍具备权限的系统 perl 二进制读取播放信息。若日后的更新封堵了这条路径，刘海会明确告知，而不是悄悄失灵。";
+"Since macOS 15.4, MediaRemote is reachable only by Apple’s own processes. Peninsula reads playback information through the system perl binary, which is still entitled. If a future update closes that path, the notch says so rather than going quiet." = "自 macOS 15.4 起，MediaRemote 仅限 Apple 自家进程访问。Peninsula 通过仍具备权限的系统 perl 二进制读取播放信息。若日后的更新封堵了这条路径，刘海会明确告知，而不是悄悄失灵。";
 "Size" = "尺寸";
 "Source and releases" = "源代码与发布";
 "Spring" = "弹簧";
@@ -160,15 +160,15 @@
 "Turn off shuffle" = "关闭随机播放";
 "Unknown artist" = "未知艺人";
 "Up to date" = "已是最新";
-"Updates are published as GitHub releases. Dynamic only tells you one exists and opens the page — it never replaces itself, which keeps an auto-updater's worth of attack surface out of the app." = "更新通过 GitHub Releases 发布。Dynamic 只会告知有新版本并打开页面，绝不自我替换——这样可以让应用免于承担自动更新程序那么大的攻击面。";
+"Updates are published as GitHub releases. Peninsula only tells you one exists and opens the page — it never replaces itself, which keeps an auto-updater's worth of attack surface out of the app." = "更新通过 GitHub Releases 发布。Peninsula 只会告知有新版本并打开页面，绝不自我替换——这样可以让应用免于承担自动更新程序那么大的攻击面。";
 "Use the file shelf" = "使用文件架";
 "Uses Apple’s own spring notation — duration plus bounce. Like the Island is 340ms at 0.18, Bouncy is 460ms at 0.28, Gentle is 580ms at 0.04. Closing is a little shorter with 0.12 more bounce, so it undershoots the resting size and settles back. The exact curves are in the Motion Lab tab, frame by frame." = "直接采用 Apple 的弹簧表示法——持续时间加回弹。“与灵动岛一致”为 340ms、0.18，“有弹性”为 460ms、0.28，“柔和”为 580ms、0.04。收起时略短且回弹增加 0.12，因此会缩得比静止尺寸更小再弹回。精确曲线可在“动效实验室”标签中逐帧查看。";
 "Version" = "版本";
 "Volume for this app" = "此应用的音量";
-"Waiting for Accessibility permission. Allow Dynamic in System Settings and this turns itself on — no relaunch needed." = "正在等待“辅助功能”权限。在系统设置中允许 Dynamic 后，无需重启即可自动启用。";
+"Waiting for Accessibility permission. Allow Peninsula in System Settings and this turns itself on — no relaunch needed." = "正在等待“辅助功能”权限。在系统设置中允许 Peninsula 后，无需重启即可自动启用。";
 "Website" = "网站";
 "When idle, show" = "待机时显示";
 "With this off, the notch opens on a click instead." = "关闭后需点击刘海才能打开。";
 "Working" = "运行中";
-"macOS reads this before the app's text is loaded, so it applies the next time Dynamic starts." = "macOS 会在加载应用文本之前读取此设置，因此将在下次启动 Dynamic 时生效。";
+"macOS reads this before the app's text is loaded, so it applies the next time Peninsula starts." = "macOS 会在加载应用文本之前读取此设置，因此将在下次启动 Peninsula 时生效。";
 "via mediaremote-adapter" = "通过 mediaremote-adapter";

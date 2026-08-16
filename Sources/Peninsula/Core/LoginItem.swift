@@ -36,7 +36,7 @@ enum LoginItem {
     static var explanation: String? {
         switch service.status {
         case .requiresApproval:
-            String(localized: "Allow Dynamic in System Settings › General › Login Items.")
+            String(localized: "Allow Peninsula in System Settings › General › Login Items.")
         case .notFound:
             String(localized: "Could not register the login item. Move the app to your Applications folder and try again.")
         default:

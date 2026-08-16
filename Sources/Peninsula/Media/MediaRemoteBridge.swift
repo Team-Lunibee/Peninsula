@@ -30,7 +30,7 @@ final class MediaRemoteBridge: @unchecked Sendable {
             candidates.append(
                 URL(fileURLWithPath: #filePath)
                     .deletingLastPathComponent()   // Media
-                    .deletingLastPathComponent()   // Dynamic
+                    .deletingLastPathComponent()   // Peninsula
                     .deletingLastPathComponent()   // Sources
                     .deletingLastPathComponent()   // package root
                     .appendingPathComponent(".build/mediaremote-adapter")
@@ -69,7 +69,7 @@ final class MediaRemoteBridge: @unchecked Sendable {
     private var buffer = Data()
     private var restartAttempts = 0
     private var isStopping = false
-    private let queue = DispatchQueue(label: "dev.anbam.Dynamic.media-remote")
+    private let queue = DispatchQueue(label: "kr.lunibee.peninsula.media-remote")
 
     private static let maxRestartAttempts = 5
     /// The adapter can emit bursts while a player loads a track; coalescing

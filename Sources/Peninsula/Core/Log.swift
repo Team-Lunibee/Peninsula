@@ -8,7 +8,7 @@ import OSLog
 /// clear where any process able to read logs can see it. Only fixed strings and
 /// our own counters are public.
 enum Log {
-    private static let subsystem = "dev.anbam.Dynamic"
+    private static let subsystem = "kr.lunibee.peninsula"
 
     static let app = Logger(subsystem: subsystem, category: "app")
     static let notch = Logger(subsystem: subsystem, category: "notch")

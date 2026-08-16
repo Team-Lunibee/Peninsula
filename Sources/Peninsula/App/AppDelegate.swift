@@ -49,7 +49,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         schedulePruning()
         Bench.startIfRequested(model: controller.model, controller: controller)
 
-        Log.app.info("Dynamic launched")
+        Log.app.info("Peninsula launched")
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -96,7 +96,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         item.button?.image = NSImage(
             systemSymbolName: "rectangle.topthird.inset.filled",
-            accessibilityDescription: "Dynamic"
+            accessibilityDescription: "Peninsula"
         )
         item.button?.image?.isTemplate = true
         item.menu = buildMenu()
@@ -140,7 +140,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         ).target = self
 
         menu.addItem(
-            withTitle: String(localized: "Quit Dynamic"),
+            withTitle: String(localized: "Quit Peninsula"),
             action: #selector(quit),
             keyEquivalent: "q"
         ).target = self

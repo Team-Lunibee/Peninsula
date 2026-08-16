@@ -1,4 +1,4 @@
-/* Dynamic — generated from the English source strings.
+/* Peninsula — generated from the English source strings.
    Keys are the English text itself, so an untranslated key still
    renders as readable English rather than as a missing token. */
 
@@ -20,7 +20,7 @@
 "AirDrop All" = "すべて AirDrop";
 "AirDrop received" = "AirDrop 受信完了";
 "AirDrop transfer stopped" = "AirDrop 転送が中断されました";
-"Allow Dynamic in System Settings › General › Login Items." = "システム設定 › 一般 › ログイン項目 で Dynamic を許可してください。";
+"Allow Peninsula in System Settings › General › Login Items." = "システム設定 › 一般 › ログイン項目 で Peninsula を許可してください。";
 "Appearance" = "外観";
 "Back one frame" = "1 フレーム戻る";
 "Back to the start" = "先頭に戻る";
@@ -53,8 +53,7 @@
 "Downloads and screenshots" = "ダウンロード・スクリーンショット";
 "Drag files onto the notch" = "ノッチにファイルをドラッグしてください";
 "Drop to keep" = "放すと保管されます";
-"Dropped files are copied into a folder of Dynamic’s own, so moving or deleting the original leaves the shelf alone. AirDrop itself is handled by macOS; the notch notices what lands in your Downloads folder, announces it, and keeps a copy on the shelf." = "ドロップしたファイルは Dynamic 専用のフォルダにコピーされるため、元のファイルを移動・削除してもシェルフはそのままです。AirDrop の受信は macOS が処理し、ノッチはダウンロードフォルダに届いたファイルを知らせてシェルフにも控えを残します。";
-"Dynamic is open source under the MIT licence, and bundles mediaremote-adapter under BSD 3-Clause. It comes with no warranty — see the notes on playback access in Features." = "Dynamic は MIT ライセンスのオープンソースで、mediaremote-adapter（BSD 3-Clause）を同梱しています。いかなる保証もありません — 再生情報へのアクセスについては「機能」タブを参照してください。";
+"Dropped files are copied into a folder of Peninsula’s own, so moving or deleting the original leaves the shelf alone. AirDrop itself is handled by macOS; the notch notices what lands in your Downloads folder, announces it, and keeps a copy on the shelf." = "ドロップしたファイルは Peninsula 専用のフォルダにコピーされるため、元のファイルを移動・削除してもシェルフはそのままです。AirDrop の受信は macOS が処理し、ノッチはダウンロードフォルダに届いたファイルを知らせてシェルフにも控えを残します。";
 "Empty the shelf" = "シェルフを空にする";
 "Enter" = "登場";
 "Exclude from screen recordings" = "画面収録から除外";
@@ -77,7 +76,7 @@
 "Hide lyrics" = "歌詞を隠す";
 "Horizontal / vertical progress" = "横 / 縦の進行";
 "Incoming opacity" = "登場時の不透明度";
-"Intercepts the keys and draws them in the notch instead of the system overlay. That means seeing the key events before the system does, which is what needs Accessibility permission. If Dynamic is already in the list but this stays off, that entry points at an older signature — remove it and add it again. Keyboard backlight keys have no readable value, so they are passed straight through." = "キーを横取りし、システムのオーバーレイではなくノッチに表示します。そのためにはシステムより先にキーイベントを受け取る必要があり、アクセシビリティ権限が要ります。一覧に Dynamic があるのに有効にならない場合、その項目は古い署名を指しているので、削除して追加し直してください。キーボードバックライトのキーは読み取れる値がないため、そのままシステムに渡します。";
+"Intercepts the keys and draws them in the notch instead of the system overlay. That means seeing the key events before the system does, which is what needs Accessibility permission. If Peninsula is already in the list but this stays off, that entry points at an older signature — remove it and add it again. Keyboard backlight keys have no readable value, so they are passed straight through." = "キーを横取りし、システムのオーバーレイではなくノッチに表示します。そのためにはシステムより先にキーイベントを受け取る必要があり、アクセシビリティ権限が要ります。一覧に Peninsula があるのに有効にならない場合、その項目は古い署名を指しているので、削除して追加し直してください。キーボードバックライトのキーは読み取れる値がないため、そのままシステムに渡します。";
 "Keep files for" = "保管期間";
 "Keep on shelf" = "シェルフに保管";
 "Keep the meter moving while resting" = "待機中もメーターを動かす";
@@ -113,13 +112,14 @@
 "Open the notch to get them back" = "ノッチを開けば取り出せます";
 "Outgoing opacity" = "退出時の不透明度";
 "Pause" = "一時停止";
+"Peninsula is open source under the MIT licence, and bundles mediaremote-adapter under BSD 3-Clause. It comes with no warranty — see the notes on playback access in Features." = "Peninsula は MIT ライセンスのオープンソースで、mediaremote-adapter（BSD 3-Clause）を同梱しています。いかなる保証もありません — 再生情報へのアクセスについては「機能」タブを参照してください。";
 "Play" = "再生";
 "Play something in Music, Spotify, or any other player and it appears here" = "ミュージックや Spotify など、どのプレイヤーで再生してもここに表示されます";
 "Playback access" = "再生情報へのアクセス";
 "Playback information unavailable" = "再生情報を取得できません";
 "Power and battery" = "電源・バッテリー";
 "Put AirDrop arrivals on the shelf" = "AirDrop で受け取ったファイルをシェルフに入れる";
-"Quit Dynamic" = "Dynamic を終了";
+"Quit Peninsula" = "Peninsula を終了";
 "Receiving AirDrop" = "AirDrop 受信中";
 "Reduce Motion is on in Accessibility, so every animation is replaced by a fade." = "アクセシビリティで「視差効果を減らす」がオンのため、すべてのアニメーションがフェードに置き換わります。";
 "Remove" = "削除";
@@ -141,7 +141,7 @@
 "Show the visualiser" = "ビジュアライザを表示";
 "Show the volume and brightness HUD in the notch" = "音量・輝度の HUD をノッチに表示";
 "Shuffle" = "シャッフル";
-"Since macOS 15.4, MediaRemote is reachable only by Apple’s own processes. Dynamic reads playback information through the system perl binary, which is still entitled. If a future update closes that path, the notch says so rather than going quiet." = "macOS 15.4 以降、MediaRemote には Apple 自身のプロセスしかアクセスできません。Dynamic は、まだ権限が残っているシステムの perl バイナリ経由で再生情報を読み取ります。将来のアップデートでこの経路が塞がれた場合は、黙って止まるのではなくノッチにその旨を表示します。";
+"Since macOS 15.4, MediaRemote is reachable only by Apple’s own processes. Peninsula reads playback information through the system perl binary, which is still entitled. If a future update closes that path, the notch says so rather than going quiet." = "macOS 15.4 以降、MediaRemote には Apple 自身のプロセスしかアクセスできません。Peninsula は、まだ権限が残っているシステムの perl バイナリ経由で再生情報を読み取ります。将来のアップデートでこの経路が塞がれた場合は、黙って止まるのではなくノッチにその旨を表示します。";
 "Size" = "サイズ";
 "Source and releases" = "ソースとリリース";
 "Spring" = "スプリング";
@@ -160,15 +160,15 @@
 "Turn off shuffle" = "シャッフルをオフ";
 "Unknown artist" = "アーティスト不明";
 "Up to date" = "最新です";
-"Updates are published as GitHub releases. Dynamic only tells you one exists and opens the page — it never replaces itself, which keeps an auto-updater's worth of attack surface out of the app." = "アップデートは GitHub リリースとして公開されます。Dynamic は新しいバージョンの存在を知らせてページを開くだけで、自身を置き換えることはありません。自動アップデータ相当の攻撃対象領域をアプリから外すためです。";
+"Updates are published as GitHub releases. Peninsula only tells you one exists and opens the page — it never replaces itself, which keeps an auto-updater's worth of attack surface out of the app." = "アップデートは GitHub リリースとして公開されます。Peninsula は新しいバージョンの存在を知らせてページを開くだけで、自身を置き換えることはありません。自動アップデータ相当の攻撃対象領域をアプリから外すためです。";
 "Use the file shelf" = "ファイルシェルフを使う";
 "Uses Apple’s own spring notation — duration plus bounce. Like the Island is 340ms at 0.18, Bouncy is 460ms at 0.28, Gentle is 580ms at 0.04. Closing is a little shorter with 0.12 more bounce, so it undershoots the resting size and settles back. The exact curves are in the Motion Lab tab, frame by frame." = "Apple のスプリング表記（持続時間＋バウンス）をそのまま使います。「アイランド基準」は 340ms・0.18、「弾むように」は 460ms・0.28、「なめらかに」は 580ms・0.04。閉じるときは少し短く、バウンスが 0.12 加わるため、待機サイズより縮んでから戻ります。正確なカーブは「モーションラボ」タブでフレーム単位に確認できます。";
 "Version" = "バージョン";
 "Volume for this app" = "このアプリの音量";
-"Waiting for Accessibility permission. Allow Dynamic in System Settings and this turns itself on — no relaunch needed." = "アクセシビリティ権限を待っています。システム設定で Dynamic を許可すれば、再起動なしで有効になります。";
+"Waiting for Accessibility permission. Allow Peninsula in System Settings and this turns itself on — no relaunch needed." = "アクセシビリティ権限を待っています。システム設定で Peninsula を許可すれば、再起動なしで有効になります。";
 "Website" = "ウェブサイト";
 "When idle, show" = "待機中の表示";
 "With this off, the notch opens on a click instead." = "オフにすると、ノッチはクリックで開きます。";
 "Working" = "動作中";
-"macOS reads this before the app's text is loaded, so it applies the next time Dynamic starts." = "macOS はアプリのテキストを読み込む前にこの値を参照するため、次回 Dynamic を起動したときに反映されます。";
+"macOS reads this before the app's text is loaded, so it applies the next time Peninsula starts." = "macOS はアプリのテキストを読み込む前にこの値を参照するため、次回 Peninsula を起動したときに反映されます。";
 "via mediaremote-adapter" = "mediaremote-adapter 経由";

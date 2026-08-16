@@ -250,7 +250,7 @@ final class LiveActivityCenter {
 
     /// macOS names screenshots with a prefix in *its own* language, not in the
     /// app's, so this has to match every language the system might be set to
-    /// rather than the one Dynamic is currently displaying. The list below
+    /// rather than the one Peninsula is currently displaying. The list below
     /// covers the languages this app ships in; anything else falls through and
     /// is announced as a download, which is wrong but harmless.
     ///

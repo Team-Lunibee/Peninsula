@@ -1,5 +1,5 @@
 /* Info.plist usage descriptions. */
 
 "NSAppleEventsUsageDescription" = "Se usa para controlar la reproducción de Música y Spotify desde la muesca.";
-"NSDesktopFolderUsageDescription" = "Se usa para guardar en la carpeta del estante de Dynamic los archivos que sueltas sobre la muesca.";
-"NSDownloadsFolderUsageDescription" = "Se usa para guardar en la carpeta del estante de Dynamic los archivos que sueltas sobre la muesca.";
+"NSDesktopFolderUsageDescription" = "Se usa para guardar en la carpeta del estante de Peninsula los archivos que sueltas sobre la muesca.";
+"NSDownloadsFolderUsageDescription" = "Se usa para guardar en la carpeta del estante de Peninsula los archivos que sueltas sobre la muesca.";

@@ -1,4 +1,4 @@
-/* Dynamic — generated from the English source strings.
+/* Peninsula — generated from the English source strings.
    Keys are the English text itself, so an untranslated key still
    renders as readable English rather than as a missing token. */
 
@@ -20,7 +20,7 @@
 "AirDrop All" = "AirDrop All";
 "AirDrop received" = "AirDrop received";
 "AirDrop transfer stopped" = "AirDrop transfer stopped";
-"Allow Dynamic in System Settings › General › Login Items." = "Allow Dynamic in System Settings › General › Login Items.";
+"Allow Peninsula in System Settings › General › Login Items." = "Allow Peninsula in System Settings › General › Login Items.";
 "Appearance" = "Appearance";
 "Back one frame" = "Back one frame";
 "Back to the start" = "Back to the start";
@@ -53,8 +53,7 @@
 "Downloads and screenshots" = "Downloads and screenshots";
 "Drag files onto the notch" = "Drag files onto the notch";
 "Drop to keep" = "Drop to keep";
-"Dropped files are copied into a folder of Dynamic’s own, so moving or deleting the original leaves the shelf alone. AirDrop itself is handled by macOS; the notch notices what lands in your Downloads folder, announces it, and keeps a copy on the shelf." = "Dropped files are copied into a folder of Dynamic’s own, so moving or deleting the original leaves the shelf alone. AirDrop itself is handled by macOS; the notch notices what lands in your Downloads folder, announces it, and keeps a copy on the shelf.";
-"Dynamic is open source under the MIT licence, and bundles mediaremote-adapter under BSD 3-Clause. It comes with no warranty — see the notes on playback access in Features." = "Dynamic is open source under the MIT licence, and bundles mediaremote-adapter under BSD 3-Clause. It comes with no warranty — see the notes on playback access in Features.";
+"Dropped files are copied into a folder of Peninsula’s own, so moving or deleting the original leaves the shelf alone. AirDrop itself is handled by macOS; the notch notices what lands in your Downloads folder, announces it, and keeps a copy on the shelf." = "Dropped files are copied into a folder of Peninsula’s own, so moving or deleting the original leaves the shelf alone. AirDrop itself is handled by macOS; the notch notices what lands in your Downloads folder, announces it, and keeps a copy on the shelf.";
 "Empty the shelf" = "Empty the shelf";
 "Enter" = "Enter";
 "Exclude from screen recordings" = "Exclude from screen recordings";
@@ -77,7 +76,7 @@
 "Hide lyrics" = "Hide lyrics";
 "Horizontal / vertical progress" = "Horizontal / vertical progress";
 "Incoming opacity" = "Incoming opacity";
-"Intercepts the keys and draws them in the notch instead of the system overlay. That means seeing the key events before the system does, which is what needs Accessibility permission. If Dynamic is already in the list but this stays off, that entry points at an older signature — remove it and add it again. Keyboard backlight keys have no readable value, so they are passed straight through." = "Intercepts the keys and draws them in the notch instead of the system overlay. That means seeing the key events before the system does, which is what needs Accessibility permission. If Dynamic is already in the list but this stays off, that entry points at an older signature — remove it and add it again. Keyboard backlight keys have no readable value, so they are passed straight through.";
+"Intercepts the keys and draws them in the notch instead of the system overlay. That means seeing the key events before the system does, which is what needs Accessibility permission. If Peninsula is already in the list but this stays off, that entry points at an older signature — remove it and add it again. Keyboard backlight keys have no readable value, so they are passed straight through." = "Intercepts the keys and draws them in the notch instead of the system overlay. That means seeing the key events before the system does, which is what needs Accessibility permission. If Peninsula is already in the list but this stays off, that entry points at an older signature — remove it and add it again. Keyboard backlight keys have no readable value, so they are passed straight through.";
 "Keep files for" = "Keep files for";
 "Keep on shelf" = "Keep on shelf";
 "Keep the meter moving while resting" = "Keep the meter moving while resting";
@@ -113,13 +112,14 @@
 "Open the notch to get them back" = "Open the notch to get them back";
 "Outgoing opacity" = "Outgoing opacity";
 "Pause" = "Pause";
+"Peninsula is open source under the MIT licence, and bundles mediaremote-adapter under BSD 3-Clause. It comes with no warranty — see the notes on playback access in Features." = "Peninsula is open source under the MIT licence, and bundles mediaremote-adapter under BSD 3-Clause. It comes with no warranty — see the notes on playback access in Features.";
 "Play" = "Play";
 "Play something in Music, Spotify, or any other player and it appears here" = "Play something in Music, Spotify, or any other player and it appears here";
 "Playback access" = "Playback access";
 "Playback information unavailable" = "Playback information unavailable";
 "Power and battery" = "Power and battery";
 "Put AirDrop arrivals on the shelf" = "Put AirDrop arrivals on the shelf";
-"Quit Dynamic" = "Quit Dynamic";
+"Quit Peninsula" = "Quit Peninsula";
 "Receiving AirDrop" = "Receiving AirDrop";
 "Reduce Motion is on in Accessibility, so every animation is replaced by a fade." = "Reduce Motion is on in Accessibility, so every animation is replaced by a fade.";
 "Remove" = "Remove";
@@ -141,7 +141,7 @@
 "Show the visualiser" = "Show the visualiser";
 "Show the volume and brightness HUD in the notch" = "Show the volume and brightness HUD in the notch";
 "Shuffle" = "Shuffle";
-"Since macOS 15.4, MediaRemote is reachable only by Apple’s own processes. Dynamic reads playback information through the system perl binary, which is still entitled. If a future update closes that path, the notch says so rather than going quiet." = "Since macOS 15.4, MediaRemote is reachable only by Apple’s own processes. Dynamic reads playback information through the system perl binary, which is still entitled. If a future update closes that path, the notch says so rather than going quiet.";
+"Since macOS 15.4, MediaRemote is reachable only by Apple’s own processes. Peninsula reads playback information through the system perl binary, which is still entitled. If a future update closes that path, the notch says so rather than going quiet." = "Since macOS 15.4, MediaRemote is reachable only by Apple’s own processes. Peninsula reads playback information through the system perl binary, which is still entitled. If a future update closes that path, the notch says so rather than going quiet.";
 "Size" = "Size";
 "Source and releases" = "Source and releases";
 "Spring" = "Spring";
@@ -160,15 +160,15 @@
 "Turn off shuffle" = "Turn off shuffle";
 "Unknown artist" = "Unknown artist";
 "Up to date" = "Up to date";
-"Updates are published as GitHub releases. Dynamic only tells you one exists and opens the page — it never replaces itself, which keeps an auto-updater's worth of attack surface out of the app." = "Updates are published as GitHub releases. Dynamic only tells you one exists and opens the page — it never replaces itself, which keeps an auto-updater's worth of attack surface out of the app.";
+"Updates are published as GitHub releases. Peninsula only tells you one exists and opens the page — it never replaces itself, which keeps an auto-updater's worth of attack surface out of the app." = "Updates are published as GitHub releases. Peninsula only tells you one exists and opens the page — it never replaces itself, which keeps an auto-updater's worth of attack surface out of the app.";
 "Use the file shelf" = "Use the file shelf";
 "Uses Apple’s own spring notation — duration plus bounce. Like the Island is 340ms at 0.18, Bouncy is 460ms at 0.28, Gentle is 580ms at 0.04. Closing is a little shorter with 0.12 more bounce, so it undershoots the resting size and settles back. The exact curves are in the Motion Lab tab, frame by frame." = "Uses Apple’s own spring notation — duration plus bounce. Like the Island is 340ms at 0.18, Bouncy is 460ms at 0.28, Gentle is 580ms at 0.04. Closing is a little shorter with 0.12 more bounce, so it undershoots the resting size and settles back. The exact curves are in the Motion Lab tab, frame by frame.";
 "Version" = "Version";
 "Volume for this app" = "Volume for this app";
-"Waiting for Accessibility permission. Allow Dynamic in System Settings and this turns itself on — no relaunch needed." = "Waiting for Accessibility permission. Allow Dynamic in System Settings and this turns itself on — no relaunch needed.";
+"Waiting for Accessibility permission. Allow Peninsula in System Settings and this turns itself on — no relaunch needed." = "Waiting for Accessibility permission. Allow Peninsula in System Settings and this turns itself on — no relaunch needed.";
 "Website" = "Website";
 "When idle, show" = "When idle, show";
 "With this off, the notch opens on a click instead." = "With this off, the notch opens on a click instead.";
 "Working" = "Working";
-"macOS reads this before the app's text is loaded, so it applies the next time Dynamic starts." = "macOS reads this before the app's text is loaded, so it applies the next time Dynamic starts.";
+"macOS reads this before the app's text is loaded, so it applies the next time Peninsula starts." = "macOS reads this before the app's text is loaded, so it applies the next time Peninsula starts.";
 "via mediaremote-adapter" = "via mediaremote-adapter";

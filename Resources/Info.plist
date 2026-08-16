@@ -5,11 +5,11 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>Dynamic</string>
+	<string>Peninsula</string>
 	<key>CFBundleExecutable</key>
-	<string>Dynamic</string>
+	<string>Peninsula</string>
 	<key>CFBundleIdentifier</key>
-	<string>dev.anbam.Dynamic</string>
+	<string>kr.lunibee.peninsula</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleLocalizations</key>
@@ -23,7 +23,7 @@
 		<string>de</string>
 	</array>
 	<key>CFBundleName</key>
-	<string>Dynamic</string>
+	<string>Peninsula</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -37,9 +37,9 @@
 	<key>NSAppleEventsUsageDescription</key>
 	<string>Used to control playback in Music and Spotify from the notch.</string>
 	<key>NSDesktopFolderUsageDescription</key>
-	<string>Used to keep files you drop on the notch in Dynamic’s shelf folder.</string>
+	<string>Used to keep files you drop on the notch in Peninsula’s shelf folder.</string>
 	<key>NSDownloadsFolderUsageDescription</key>
-	<string>Used to keep files you drop on the notch in Dynamic’s shelf folder.</string>
+	<string>Used to keep files you drop on the notch in Peninsula’s shelf folder.</string>
 	<key>NSHighResolutionCapable</key>
 	<true/>
 	<key>NSHumanReadableCopyright</key>

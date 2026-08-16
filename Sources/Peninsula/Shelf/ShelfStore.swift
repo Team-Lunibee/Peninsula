@@ -23,7 +23,7 @@ final class ShelfStore {
             .first ?? URL(fileURLWithPath: NSTemporaryDirectory())
 
         directory = base
-            .appendingPathComponent("Dynamic", isDirectory: true)
+            .appendingPathComponent("Peninsula", isDirectory: true)
             .appendingPathComponent("Shelf", isDirectory: true)
         indexURL = directory.appendingPathComponent("index.json")
 

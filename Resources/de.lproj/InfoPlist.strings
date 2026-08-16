@@ -1,5 +1,5 @@
 /* Info.plist usage descriptions. */
 
 "NSAppleEventsUsageDescription" = "Wird verwendet, um die Wiedergabe in Musik und Spotify vom Notch aus zu steuern.";
-"NSDesktopFolderUsageDescription" = "Wird verwendet, um auf den Notch gezogene Dateien im Ablage-Ordner von Dynamic zu behalten.";
-"NSDownloadsFolderUsageDescription" = "Wird verwendet, um auf den Notch gezogene Dateien im Ablage-Ordner von Dynamic zu behalten.";
+"NSDesktopFolderUsageDescription" = "Wird verwendet, um auf den Notch gezogene Dateien im Ablage-Ordner von Peninsula zu behalten.";
+"NSDownloadsFolderUsageDescription" = "Wird verwendet, um auf den Notch gezogene Dateien im Ablage-Ordner von Peninsula zu behalten.";

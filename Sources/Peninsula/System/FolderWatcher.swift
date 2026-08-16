@@ -8,7 +8,7 @@ import Foundation
 /// indexed.
 final class FolderWatcher: @unchecked Sendable {
     private let url: URL
-    private let queue = DispatchQueue(label: "dev.anbam.Dynamic.folder-watcher")
+    private let queue = DispatchQueue(label: "kr.lunibee.peninsula.folder-watcher")
     private var source: DispatchSourceFileSystemObject?
     private var descriptor: CInt = -1
     private var known: Set<String> = []

@@ -1,5 +1,5 @@
 /* Info.plist usage descriptions. */
 
 "NSAppleEventsUsageDescription" = "노치에서 음악과 Spotify 재생을 제어하기 위해 사용합니다.";
-"NSDesktopFolderUsageDescription" = "노치에 끌어다 놓은 파일을 Dynamic 선반 폴더에 보관하기 위해 사용합니다.";
-"NSDownloadsFolderUsageDescription" = "노치에 끌어다 놓은 파일을 Dynamic 선반 폴더에 보관하기 위해 사용합니다.";
+"NSDesktopFolderUsageDescription" = "노치에 끌어다 놓은 파일을 Peninsula 선반 폴더에 보관하기 위해 사용합니다.";
+"NSDownloadsFolderUsageDescription" = "노치에 끌어다 놓은 파일을 Peninsula 선반 폴더에 보관하기 위해 사용합니다.";

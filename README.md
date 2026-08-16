@@ -39,7 +39,7 @@ Download the zip from [Releases](https://github.com/RHbox/peninsula/releases), u
 ### Build from source
 
 ```bash
-./scripts/bundle.sh release && open build/Dynamic.app
+./scripts/bundle.sh release && open build/Peninsula.app
 ```
 
 The first build fetches [mediaremote-adapter](https://github.com/ungive/mediaremote-adapter) (BSD-3) and builds it into a framework. No cmake needed.
@@ -66,7 +66,7 @@ The notch is also **pinned to a private window server Space**. The `.stationary`
 
 ## Motion — measured, not guessed
 
-It uses Apple's own notation from WWDC23 (`duration` + `bounce`). A transition is defined in exactly one place, [`Motion.Timeline`](Sources/Dynamic/Motion/Motion.swift), and **the real animation and the Motion Lab read the same values.**
+It uses Apple's own notation from WWDC23 (`duration` + `bounce`). A transition is defined in exactly one place, [`Motion.Timeline`](Sources/Peninsula/Motion/Motion.swift), and **the real animation and the Motion Lab read the same values.**
 
 The default preset's numbers were not chosen. They come from **recording a real Dynamic Island at 50fps, extracting the silhouette frame by frame, and least-squares fitting Apple's own `Spring(duration:bounce:)`** to it.
 
@@ -98,7 +98,7 @@ Settings › Motion Lab steps through every frame at **1/60s**, forwards and bac
 It can also be dumped as a contact sheet:
 
 ```bash
-"$(swift build --show-bin-path)/Dynamic" --dump-frames ./frames
+"$(swift build --show-bin-path)/Peninsula" --dump-frames ./frames
 ```
 
 ---
@@ -142,7 +142,7 @@ The meter became a `CAShapeLayer` with `CABasicAnimation` (the render server int
 
 **② The memory was the artwork.** `NSImage(data:)` rasterises at full resolution — a 3000×3000 cover is 36MB of pixels alone, drawn on screen at 96pt. Switching to `CGImageSourceCreateThumbnailAtIndex` means the full bitmap is never created.
 
-**③ The cost during transitions was in three places.** A bench that repeats expand/collapse 200 times (`DYNAMIC_BENCH=transitions`) made it measurable by removing one part at a time.
+**③ The cost during transitions was in three places.** A bench that repeats expand/collapse 200 times (`PENINSULA_BENCH=transitions`) made it measurable by removing one part at a time.
 
 - **Apply the jelly deformation to the shape, not the view.** A `scaleEffect` on the container propagates down into the AppKit views inside it (the meter, the AirPlay button), and every frame runs `-[NSView setFrameTransform:]` → layout invalidation → tracking-area updates, recursively. That was 4.4 points. Stretching `NotchShape`'s path gives the same shape at essentially no cost.
 - **Invisible black was being painted twice.** The shadow layer already fills the same silhouette with black, and the content layer filled it again. 5 points.
@@ -158,7 +158,7 @@ The culprit was **CoreGraphics' glyph bitmap cache** (`CGGlyphBuilderLockBitmaps
 
 Here the intuition inverts. **The cheaper the rendering, the more it leaks** — cheaper means more frames, and more frames mean more distinct scales.
 
-The fix is to draw the text **once** into a texture and let the springs move that texture (`drawingGroup`). But **not on the panel as a whole**, which is the obvious place and is wrong: nothing hosted from AppKit — the meter, the AirPlay button — draws inside a rasterised group; they become 🚫 placeholders. That took a screenshot to notice. So [`rasterisedText()`](Sources/Dynamic/Motion/Transitions.swift) is applied only to text subtrees. On the marquee title it goes *inside* the offset, so scrolling moves a texture instead of redrawing the glyphs every frame.
+The fix is to draw the text **once** into a texture and let the springs move that texture (`drawingGroup`). But **not on the panel as a whole**, which is the obvious place and is wrong: nothing hosted from AppKit — the meter, the AirPlay button — draws inside a rasterised group; they become 🚫 placeholders. That took a screenshot to notice. So [`rasterisedText()`](Sources/Peninsula/Motion/Transitions.swift) is applied only to text subtrees. On the marquee title it goes *inside* the offset, so scrolling moves a texture instead of redrawing the glyphs every frame.
 
 The result: 0MB of growth over 200 cycles, a five-minute soak flat at 86·86·85·85MB, and transition CPU down from 16.3% to 11.1% as a bonus.
 
@@ -169,7 +169,7 @@ The result: 0MB of growth over 200 cycles, a five-minute soak flat at 86·86·85
 ## Layout
 
 ```
-Sources/Dynamic/
+Sources/Peninsula/
   App/          entry point, app delegate, status item
   Core/         preferences, login item, observation loop, logging
   Motion/       spring timelines, transitions, frame dump
@@ -180,7 +180,7 @@ Sources/Dynamic/
   UI/           every SwiftUI view
 ```
 
-The core three: [`NotchController`](Sources/Dynamic/Notch/NotchController.swift) (window and pointer), [`NotchViewModel`](Sources/Dynamic/Notch/NotchViewModel.swift) (state machine), [`Motion`](Sources/Dynamic/Motion/Motion.swift) (all of the motion).
+The core three: [`NotchController`](Sources/Peninsula/Notch/NotchController.swift) (window and pointer), [`NotchViewModel`](Sources/Peninsula/Notch/NotchViewModel.swift) (state machine), [`Motion`](Sources/Peninsula/Motion/Motion.swift) (all of the motion).
 
 ---
 
@@ -224,14 +224,14 @@ SIGN_IDENTITY="Apple Development: you@example.com" ./scripts/bundle.sh release
 ./scripts/release.sh
 ```
 
-Builds, signs, notarises and staples, and leaves `build/dist/Dynamic-<version>.zip`.
+Builds, signs, notarises and staples, and leaves `build/dist/Peninsula-<version>.zip`.
 
 **A Developer ID Application certificate is required.** Apple Distribution (for the App Store) and Apple Development (for your own Macs) cannot be notarised, and fail minutes after submission with an error that does not name the cause. So the script matches the certificate by name and refuses to start without it.
 
 Credentials are stored once:
 
 ```bash
-xcrun notarytool store-credentials Dynamic-notary --apple-id you@example.com --team-id TEAMID --password xxxx-xxxx-xxxx-xxxx
+xcrun notarytool store-credentials Peninsula-notary --apple-id you@example.com --team-id TEAMID --password xxxx-xxxx-xxxx-xxxx
 ```
 
 Two things that catch people out are already handled. The signature needs a **secure timestamp** (`--timestamp=none` is rejected), and the hardened runtime has to be on **every Mach-O in the bundle** — not just the main executable, but `MediaRemoteAdapter.framework` too.
@@ -242,4 +242,4 @@ Two things that catch people out are already handled. The signature needs a **se
 
 [MIT](LICENSE).
 
-Bundles [mediaremote-adapter](https://github.com/ungive/mediaremote-adapter) (BSD 3-Clause, © 2025 Jonas van den Berg). Its full licence text ships inside the app at `Dynamic.app/Contents/Resources/LICENSE-mediaremote-adapter`.
+Bundles [mediaremote-adapter](https://github.com/ungive/mediaremote-adapter) (BSD 3-Clause, © 2025 Jonas van den Berg). Its full licence text ships inside the app at `Peninsula.app/Contents/Resources/LICENSE-mediaremote-adapter`.

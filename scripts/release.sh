@@ -1,5 +1,5 @@
 #!/bin/bash
-# Builds, signs, notarises and staples Dynamic.app for direct distribution.
+# Builds, signs, notarises and staples Peninsula.app for direct distribution.
 #
 # Gatekeeper rejects anything that is merely signed. Without a notarisation
 # ticket every download shows "확인되지 않은 개발자" and has to be opened from
@@ -15,7 +15,7 @@
 # One-time credential setup, storing an app-specific password in the keychain
 # (make the password at appleid.apple.com › Sign-In and Security):
 #
-#   xcrun notarytool store-credentials Dynamic-notary \
+#   xcrun notarytool store-credentials Peninsula-notary \
 #       --apple-id you@example.com \
 #       --team-id J9GX644K88 \
 #       --password xxxx-xxxx-xxxx-xxxx
@@ -27,10 +27,10 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-NAME="Dynamic"
+NAME="Peninsula"
 APP="$ROOT/build/$NAME.app"
 DIST="$ROOT/build/dist"
-PROFILE="${NOTARY_PROFILE:-Dynamic-notary}"
+PROFILE="${NOTARY_PROFILE:-Peninsula-notary}"
 
 # ---------------------------------------------------------------- identity
 
@@ -70,9 +70,9 @@ echo "==> Signing as $SIGN_IDENTITY"
 # signed with a different certificate than the dev build, so macOS treats it as
 # a different app and drops every privacy grant the user has given.
 #
-# DYNAMIC_RELEASE: leaves the Motion Lab and the frame dumper out of the binary.
+# PENINSULA_RELEASE: leaves the Motion Lab and the frame dumper out of the binary.
 echo "==> Building"
-NO_INSTALL=1 DYNAMIC_RELEASE=1 SIGN_IDENTITY="$SIGN_IDENTITY" \
+NO_INSTALL=1 PENINSULA_RELEASE=1 SIGN_IDENTITY="$SIGN_IDENTITY" \
     "$ROOT/scripts/bundle.sh" release
 
 VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' \

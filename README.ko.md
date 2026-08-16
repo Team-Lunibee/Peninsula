@@ -39,7 +39,7 @@ macOS 14 (Sonoma) 이상 · 노치가 있는 MacBook.
 ### 소스에서 빌드
 
 ```bash
-./scripts/bundle.sh release && open build/Dynamic.app
+./scripts/bundle.sh release && open build/Peninsula.app
 ```
 
 첫 빌드에서 [mediaremote-adapter](https://github.com/ungive/mediaremote-adapter)(BSD-3)를 자동으로 받아 프레임워크로 빌드합니다. cmake는 필요 없습니다.
@@ -66,7 +66,7 @@ macOS 14 (Sonoma) 이상 · 노치가 있는 MacBook.
 
 ## 모션 — 추측하지 않고 측정했습니다
 
-Apple이 WWDC23에서 정한 표기(`duration` + `bounce`)를 그대로 씁니다. 전환 하나는 [`Motion.Timeline`](Sources/Dynamic/Motion/Motion.swift) 한 곳에 정의되고, **실제 애니메이션과 모션 실험실이 같은 값을 읽습니다.**
+Apple이 WWDC23에서 정한 표기(`duration` + `bounce`)를 그대로 씁니다. 전환 하나는 [`Motion.Timeline`](Sources/Peninsula/Motion/Motion.swift) 한 곳에 정의되고, **실제 애니메이션과 모션 실험실이 같은 값을 읽습니다.**
 
 기본 프리셋의 숫자는 고른 값이 아니라 **실제 다이나믹 아일랜드를 50fps로 녹화해 프레임마다 실루엣을 뽑고, Apple 자신의 `Spring(duration:bounce:)`을 최소자승으로 맞춘 결과**입니다.
 
@@ -98,7 +98,7 @@ Apple이 WWDC23에서 정한 표기(`duration` + `bounce`)를 그대로 씁니�
 컨택트 시트로 뽑아 검토할 수도 있습니다:
 
 ```bash
-"$(swift build --show-bin-path)/Dynamic" --dump-frames ./frames
+"$(swift build --show-bin-path)/Peninsula" --dump-frames ./frames
 ```
 
 ---
@@ -142,7 +142,7 @@ macOS에서 `TimelineView`가 `NSHostingView` 안에 있으면 `sizeThatFits()`�
 
 **② 메모리는 앨범아트였습니다.** `NSImage(data:)`는 원본 해상도로 비트맵화합니다 — 3000×3000이면 픽셀만 36MB인데 화면에는 96pt로 그립니다. `CGImageSourceCreateThumbnailAtIndex`로 바꿔서 전체 비트맵이 애초에 만들어지지 않게 했습니다.
 
-**③ 전환 중 비용은 세 군데였습니다.** 확대/축소를 200회 자동 반복하는 벤치(`DYNAMIC_BENCH=transitions`)를 만들어 부품을 하나씩 꺼가며 재봤습니다.
+**③ 전환 중 비용은 세 군데였습니다.** 확대/축소를 200회 자동 반복하는 벤치(`PENINSULA_BENCH=transitions`)를 만들어 부품을 하나씩 꺼가며 재봤습니다.
 
 - **젤리 변형을 뷰가 아니라 도형에 겁니다.** `scaleEffect`를 컨테이너에 걸면 그 변환이 안에 있는 AppKit 뷰(미터·AirPlay 버튼)까지 내려가고, 매 프레임 `-[NSView setFrameTransform:]` → 오토레이아웃 무효화 → 트래킹 영역 갱신이 재귀로 돕니다. 4.4%p였습니다. `NotchShape`의 path를 늘리면 같은 모양에 비용은 사실상 0입니다.
 - **보이지 않는 검정을 두 번 칠하고 있었습니다.** 그림자 레이어가 이미 같은 실루엣을 검정으로 채우는데 콘텐츠 레이어가 한 번 더 칠했습니다. 5%p.
@@ -158,7 +158,7 @@ macOS에서 `TimelineView`가 `NSHostingView` 안에 있으면 `sizeThatFits()`�
 
 여기서 직관이 한 번 뒤집힙니다. **렌더링을 싸게 만들수록 더 많이 샙니다** — 프레임이 더 나오고, 프레임이 늘면 서로 다른 배율이 늘기 때문입니다.
 
-고치는 방법은 텍스트를 **한 번만** 그려 텍스처로 만들고 스프링이 그 텍스처를 옮기게 하는 것입니다(`drawingGroup`). 단, **패널 전체에 걸면 안 됩니다.** 제일 그럴듯하고 틀린 자리입니다 — 래스터화 그룹 안에서는 AppKit에서 호스팅된 것(미터, AirPlay 버튼)이 그려지지 않고 🚫 자리표시자가 됩니다. 화면을 찍어 보고서야 알았습니다. 그래서 [`rasterisedText()`](Sources/Dynamic/Motion/Transitions.swift)는 텍스트 하위 트리에만 걸립니다. 마퀴 제목은 offset **안쪽**에 걸어서, 스크롤이 매 프레임 글자를 다시 그리는 대신 텍스처를 밀도록 했습니다.
+고치는 방법은 텍스트를 **한 번만** 그려 텍스처로 만들고 스프링이 그 텍스처를 옮기게 하는 것입니다(`drawingGroup`). 단, **패널 전체에 걸면 안 됩니다.** 제일 그럴듯하고 틀린 자리입니다 — 래스터화 그룹 안에서는 AppKit에서 호스팅된 것(미터, AirPlay 버튼)이 그려지지 않고 🚫 자리표시자가 됩니다. 화면을 찍어 보고서야 알았습니다. 그래서 [`rasterisedText()`](Sources/Peninsula/Motion/Transitions.swift)는 텍스트 하위 트리에만 걸립니다. 마퀴 제목은 offset **안쪽**에 걸어서, 스크롤이 매 프레임 글자를 다시 그리는 대신 텍스처를 밀도록 했습니다.
 
 결과는 200회 반복 후 증가분 0MB, 5분 소크에서 86·86·85·85MB로 평평, 전환 CPU는 16.3% → 11.1%로 덤이었습니다.
 
@@ -169,7 +169,7 @@ macOS에서 `TimelineView`가 `NSHostingView` 안에 있으면 `sizeThatFits()`�
 ## 구조
 
 ```
-Sources/Dynamic/
+Sources/Peninsula/
   App/          진입점, 앱 델리게이트, 상태 표시줄
   Core/         환경설정, 로그인 항목, 관찰 루프, 로그
   Motion/       스프링 타임라인, 전환, 프레임 덤프
@@ -180,7 +180,7 @@ Sources/Dynamic/
   UI/           SwiftUI 뷰 전부
 ```
 
-핵심 셋: [`NotchController`](Sources/Dynamic/Notch/NotchController.swift)(창과 포인터), [`NotchViewModel`](Sources/Dynamic/Notch/NotchViewModel.swift)(상태 기계), [`Motion`](Sources/Dynamic/Motion/Motion.swift)(모션 전부).
+핵심 셋: [`NotchController`](Sources/Peninsula/Notch/NotchController.swift)(창과 포인터), [`NotchViewModel`](Sources/Peninsula/Notch/NotchViewModel.swift)(상태 기계), [`Motion`](Sources/Peninsula/Motion/Motion.swift)(모션 전부).
 
 ---
 
@@ -224,14 +224,14 @@ SIGN_IDENTITY="Apple Development: you@example.com" ./scripts/bundle.sh release
 ./scripts/release.sh
 ```
 
-빌드 → 서명 → 공증 → 스테이플까지 하고 `build/dist/Dynamic-<버전>.zip`을 내놓습니다.
+빌드 → 서명 → 공증 → 스테이플까지 하고 `build/dist/Peninsula-<버전>.zip`을 내놓습니다.
 
 **Developer ID Application 인증서가 필요합니다.** Apple Distribution(App Store용)이나 Apple Development(내 맥용)로는 공증이 안 되고, 제출 몇 분 뒤에야 알기 어려운 오류로 반려됩니다. 그래서 스크립트가 인증서 이름을 직접 대조하고, 없으면 시작도 하지 않습니다.
 
 자격증명은 한 번만 저장해 두면 됩니다:
 
 ```bash
-xcrun notarytool store-credentials Dynamic-notary --apple-id you@example.com --team-id TEAMID --password xxxx-xxxx-xxxx-xxxx
+xcrun notarytool store-credentials Peninsula-notary --apple-id you@example.com --team-id TEAMID --password xxxx-xxxx-xxxx-xxxx
 ```
 
 여기서 걸리기 쉬운 두 가지를 미리 처리해 뒀습니다. 서명에는 **보안 타임스탬프**가 있어야 하고(`--timestamp=none`이면 반려), 하드닝 런타임은 **번들 안의 모든 Mach-O**에 붙어야 합니다 — 메인 실행 파일뿐 아니라 `MediaRemoteAdapter.framework`까지요.
@@ -242,4 +242,4 @@ xcrun notarytool store-credentials Dynamic-notary --apple-id you@example.com --t
 
 [MIT](LICENSE).
 
-[mediaremote-adapter](https://github.com/ungive/mediaremote-adapter)(BSD 3-Clause, © 2025 Jonas van den Berg)를 번들에 포함합니다. 라이선스 전문은 앱 안(`Dynamic.app/Contents/Resources/LICENSE-mediaremote-adapter`)에 함께 들어갑니다.
+[mediaremote-adapter](https://github.com/ungive/mediaremote-adapter)(BSD 3-Clause, © 2025 Jonas van den Berg)를 번들에 포함합니다. 라이선스 전문은 앱 안(`Peninsula.app/Contents/Resources/LICENSE-mediaremote-adapter`)에 함께 들어갑니다.

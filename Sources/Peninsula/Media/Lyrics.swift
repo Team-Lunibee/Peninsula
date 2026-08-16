@@ -221,7 +221,7 @@ final class LyricsService {
         var request = URLRequest(url: url)
         request.timeoutInterval = 8
         // LRCLIB asks clients to identify themselves.
-        request.setValue("Dynamic (macOS notch app)", forHTTPHeaderField: "User-Agent")
+        request.setValue("Peninsula (macOS notch app)", forHTTPHeaderField: "User-Agent")
 
         do {
             let (data, response) = try await session.data(for: request)
