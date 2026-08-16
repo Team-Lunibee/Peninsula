@@ -63,9 +63,36 @@ struct NotchGeometry: Equatable {
 
     var hasHardwareNotch: Bool { style == .cutout }
 
-    /// Breathing room around the panel so shadows and the squash-and-stretch
+    /// Breathing room around the panel so the shadow and the squash-and-stretch
     /// overshoot are never clipped by the window edge.
-    static let shadowPadding: CGFloat = 26
+    ///
+    /// Derived, because a flat number was wrong and looked it. A SwiftUI shadow
+    /// of radius r stays visible to roughly 2r; the open panel uses r = 18 and
+    /// drops it 7pt. On top of that the jelly impulse stretches the silhouette
+    /// by `horizontalGain` of its own width, split across both sides — 29pt per
+    /// side at the widest panel. The old flat 26pt covered none of that fully,
+    /// so the shadow ended in straight vertical and horizontal lines, worst
+    /// where the panel is widest.
+    static let shadowBlurExtent: CGFloat = shadowRadiusOpen * 2
+    static let shadowRadiusOpen: CGFloat = 18
+    static let shadowDrop: CGFloat = 7
+
+    /// Vertical room is blur plus drop. The jelly squashes the panel *shorter*,
+    /// so nothing overshoots downward.
+    static let shadowPaddingBottom: CGFloat = shadowBlurExtent + shadowDrop
+
+    static func shadowPaddingSide(for expandedWidth: CGFloat) -> CGFloat {
+        (shadowBlurExtent + expandedWidth * JellyModifier.horizontalGain / 2).rounded(.up)
+    }
+
+    /// How far outside the visible panel the pointer may stray before the panel
+    /// counts as left.
+    ///
+    /// Deliberately its own number rather than a fraction of the padding above.
+    /// Tying the two together means every adjustment to how much room the
+    /// shadow needs silently moves where the panel reacts to the mouse, and
+    /// that is how a rendering fix turns into a behaviour regression.
+    static let hoverSlop: CGFloat = 13
 
     // Proportions start from Apple's Dynamic Island — the expanded
     // presentation is ~2.9x the island's width (126pt -> 371pt) and the system
@@ -147,9 +174,10 @@ struct NotchGeometry: Equatable {
             height: Self.expandedHeight
         )
 
+        let sidePadding = Self.shadowPaddingSide(for: expandedSize.width)
         let windowSize = CGSize(
-            width: expandedSize.width + Self.shadowPadding * 2,
-            height: expandedSize.height + Self.shadowPadding
+            width: expandedSize.width + sidePadding * 2,
+            height: expandedSize.height + Self.shadowPaddingBottom
         )
 
         // A cutout panel hugs the top edge because it has to line up with the
@@ -203,9 +231,18 @@ struct NotchGeometry: Equatable {
 
     /// Hover target, generously padded below the pill so the notch still opens
     /// when the pointer approaches from the content area rather than the bezel.
+    ///
+    /// Measured out from the visible panel, not in from the window: the window
+    /// carries however much room the shadow happens to need, and the pointer
+    /// should not care about that.
     func hoverRect(expanded: Bool) -> CGRect {
         if expanded {
-            return windowFrame.insetBy(dx: Self.shadowPadding / 2, dy: 0)
+            return CGRect(
+                x: windowFrame.midX - expandedSize.width / 2 - Self.hoverSlop,
+                y: windowFrame.minY,
+                width: expandedSize.width + Self.hoverSlop * 2,
+                height: windowFrame.height
+            )
         }
         return closedRect.insetBy(dx: -6, dy: -4)
     }

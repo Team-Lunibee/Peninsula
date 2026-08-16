@@ -555,7 +555,7 @@ final class NotchController: NSObject {
     /// While open, the pointer may roam the whole panel. The shadow margin is
     /// trimmed so leaving by a pixel does not keep it alive.
     private var openHoverRect: CGRect {
-        model.geometry.windowFrame.insetBy(dx: NotchGeometry.shadowPadding / 2, dy: 0)
+        model.geometry.hoverRect(expanded: true)
     }
 
     private func handleClickOutside(at location: CGPoint) {
@@ -568,7 +568,10 @@ final class NotchController: NSObject {
             return
         }
 
-        guard !model.geometry.windowFrame.contains(location) else { return }
+        // The visible panel, not the window: the window now reaches well past
+        // the shadow, and a click in that transparent margin is a click outside
+        // the panel by any reading a person would give it.
+        guard !openHoverRect.contains(location) else { return }
         model.collapse()
     }
 
