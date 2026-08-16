@@ -53,6 +53,15 @@ cp "$BINARY" "$APP/Contents/MacOS/Peninsula"
 cp "$ROOT/Resources/Info.plist" "$APP/Contents/Info.plist"
 printf 'APPL????' > "$APP/Contents/PkgInfo"
 
+# Regenerate rather than trust the checked-in file: the icon is drawn by
+# scripts/make-icon.swift from the same notch shape the app uses, so a shape
+# change that never reached the icon would ship an icon of the old app.
+if [ ! -f "$ROOT/Resources/$NAME.icns" ]; then
+    echo "==> Drawing the icon"
+    (cd "$ROOT" && swift scripts/make-icon.swift >/dev/null)
+fi
+cp "$ROOT/Resources/$NAME.icns" "$APP/Contents/Resources/"
+
 # Localisations go straight into Contents/Resources, which is where Bundle.main
 # looks. SwiftPM would otherwise put them in a Peninsula_Peninsula.bundle beside the
 # binary — invisible to this hand-assembled app, and every string would silently

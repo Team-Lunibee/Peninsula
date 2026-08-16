@@ -136,7 +136,7 @@ final class Preferences {
             Key.displayTarget.rawValue: DisplayTarget.automatic.rawValue,
             Key.tintFromArtwork.rawValue: true,
             Key.openOnHover.rawValue: true,
-            Key.hoverDelay.rawValue: 0.18,
+            Key.hoverDelay.rawValue: 0.2,
             Key.motion.rawValue: MotionPreset.snappy.rawValue,
             Key.hideFromScreenRecording.rawValue: false,
             Key.hapticFeedback.rawValue: false,

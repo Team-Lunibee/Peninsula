@@ -8,6 +8,8 @@
 	<string>Peninsula</string>
 	<key>CFBundleExecutable</key>
 	<string>Peninsula</string>
+	<key>CFBundleIconFile</key>
+	<string>Peninsula</string>
 	<key>CFBundleIdentifier</key>
 	<string>kr.lunibee.peninsula</string>
 	<key>CFBundleInfoDictionaryVersion</key>

@@ -19,7 +19,7 @@ final class UpdateCheck {
 
     private(set) var state: State = .idle
 
-    static let repository = "RHbox/peninsula"
+    static let repository = "RHbox/Peninsula"
     static let releasesPage = URL(string: "https://github.com/\(repository)/releases/latest")!
     static let sourcePage = URL(string: "https://github.com/\(repository)")!
     static let website = URL(string: "https://lunibee.kr")!
