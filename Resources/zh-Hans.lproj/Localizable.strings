@@ -3,6 +3,7 @@
    renders as readable English rather than as a missing token. */
 
 "%.2fs" = "%.2f 秒";
+"%@ available" = "%@ 可用";
 "%lldh %lldm left" = "剩余 %lld 小时 %lld 分钟";
 "%lldm left" = "剩余 %lld 分钟";
 "1 day" = "1 天";
@@ -30,12 +31,14 @@
 "Bouncy" = "有弹性";
 "Case" = "充电盒";
 "Charging" = "正在充电";
+"Check for Updates" = "检查更新";
 "Collapse" = "收起";
 "Connected" = "已连接";
 "Container width progress" = "容器宽度进度";
 "Content delay" = "内容延迟";
 "Corner" = "圆角";
 "Could not add %@: %@" = "无法添加 %@：%@";
+"Could not check" = "无法检查";
 "Could not register the login item. Move the app to your Applications folder and try again." = "无法注册登录项。请将应用移到“应用程序”文件夹后重试。";
 "Could not set up opening at login: %@" = "无法设置登录启动：%@";
 "Could not start the media adapter." = "无法启动媒体适配器。";
@@ -45,11 +48,13 @@
 "Delay before opening" = "打开前延迟";
 "Device connections" = "设备连接";
 "Devices" = "设备";
+"Download %@" = "下载 %@";
 "Download finished" = "下载完成";
 "Downloads and screenshots" = "下载与截屏";
 "Drag files onto the notch" = "把文件拖到刘海上";
 "Drop to keep" = "松开即可保存";
 "Dropped files are copied into a folder of Dynamic’s own, so moving or deleting the original leaves the shelf alone. AirDrop itself is handled by macOS; the notch notices what lands in your Downloads folder, announces it, and keeps a copy on the shelf." = "拖入的文件会复制到 Dynamic 自己的文件夹中，因此移动或删除原文件不会影响文件架。AirDrop 本身由 macOS 处理；刘海会留意“下载”文件夹中新到的文件，予以提示并在文件架上保留一份。";
+"Dynamic is open source under the MIT licence, and bundles mediaremote-adapter under BSD 3-Clause. It comes with no warranty — see the notes on playback access in Features." = "Dynamic 是基于 MIT 许可证的开源软件，并附带 mediaremote-adapter（BSD 3-Clause）。不提供任何担保——有关播放信息访问的说明请见“功能”标签。";
 "Empty the shelf" = "清空文件架";
 "Enter" = "进入";
 "Exclude from screen recordings" = "从屏幕录制中排除";
@@ -63,6 +68,7 @@
 "Forward one frame" = "前进一帧";
 "Frame" = "帧";
 "Fully charged" = "已充满";
+"General" = "通用";
 "Gentle" = "柔和";
 "H %.0fms·%.2f / V %.0fms·%.2f" = "H %.0fms·%.2f / V %.0fms·%.2f";
 "Haptic feedback" = "触感反馈";
@@ -75,6 +81,7 @@
 "Keep files for" = "保留时长";
 "Keep on shelf" = "存入文件架";
 "Keep the meter moving while resting" = "静止时保持仪表跳动";
+"Language" = "语言";
 "Left" = "左";
 "Let go over the notch" = "请在刘海上方松开";
 "Like the Island" = "与灵动岛一致";
@@ -83,6 +90,7 @@
 "Low battery" = "电量不足";
 "Match the menu bar" = "与菜单栏一致";
 "Match the notch" = "与刘海一致";
+"Match the system" = "跟随系统";
 "Matching the notch hides the resting pill behind the camera housing exactly." = "与刘海一致时，待机状态的胶囊会被摄像头模块完全遮住。";
 "Motion" = "动效";
 "Motion Lab" = "动效实验室";
@@ -135,6 +143,7 @@
 "Shuffle" = "随机播放";
 "Since macOS 15.4, MediaRemote is reachable only by Apple’s own processes. Dynamic reads playback information through the system perl binary, which is still entitled. If a future update closes that path, the notch says so rather than going quiet." = "自 macOS 15.4 起，MediaRemote 仅限 Apple 自家进程访问。Dynamic 通过仍具备权限的系统 perl 二进制读取播放信息。若日后的更新封堵了这条路径，刘海会明确告知，而不是悄悄失灵。";
 "Size" = "尺寸";
+"Source and releases" = "源代码与发布";
 "Spring" = "弹簧";
 "Stored" = "已存储";
 "System volume" = "系统音量";
@@ -150,11 +159,16 @@
 "This version of macOS blocks access to playback information." = "此 macOS 版本阻止了对播放信息的访问。";
 "Turn off shuffle" = "关闭随机播放";
 "Unknown artist" = "未知艺人";
+"Up to date" = "已是最新";
+"Updates are published as GitHub releases. Dynamic only tells you one exists and opens the page — it never replaces itself, which keeps an auto-updater's worth of attack surface out of the app." = "更新通过 GitHub Releases 发布。Dynamic 只会告知有新版本并打开页面，绝不自我替换——这样可以让应用免于承担自动更新程序那么大的攻击面。";
 "Use the file shelf" = "使用文件架";
 "Uses Apple’s own spring notation — duration plus bounce. Like the Island is 340ms at 0.18, Bouncy is 460ms at 0.28, Gentle is 580ms at 0.04. Closing is a little shorter with 0.12 more bounce, so it undershoots the resting size and settles back. The exact curves are in the Motion Lab tab, frame by frame." = "直接采用 Apple 的弹簧表示法——持续时间加回弹。“与灵动岛一致”为 340ms、0.18，“有弹性”为 460ms、0.28，“柔和”为 580ms、0.04。收起时略短且回弹增加 0.12，因此会缩得比静止尺寸更小再弹回。精确曲线可在“动效实验室”标签中逐帧查看。";
+"Version" = "版本";
 "Volume for this app" = "此应用的音量";
 "Waiting for Accessibility permission. Allow Dynamic in System Settings and this turns itself on — no relaunch needed." = "正在等待“辅助功能”权限。在系统设置中允许 Dynamic 后，无需重启即可自动启用。";
+"Website" = "网站";
 "When idle, show" = "待机时显示";
 "With this off, the notch opens on a click instead." = "关闭后需点击刘海才能打开。";
 "Working" = "运行中";
+"macOS reads this before the app's text is loaded, so it applies the next time Dynamic starts." = "macOS 会在加载应用文本之前读取此设置，因此将在下次启动 Dynamic 时生效。";
 "via mediaremote-adapter" = "通过 mediaremote-adapter";

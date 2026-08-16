@@ -3,6 +3,7 @@
    renders as readable English rather than as a missing token. */
 
 "%.2fs" = "%.2f s";
+"%@ available" = "%@ verfügbar";
 "%lldh %lldm left" = "Noch %lld Std. %lld Min.";
 "%lldm left" = "Noch %lld Min.";
 "1 day" = "1 Tag";
@@ -30,12 +31,14 @@
 "Bouncy" = "Federnd";
 "Case" = "Case";
 "Charging" = "Wird geladen";
+"Check for Updates" = "Nach Updates suchen";
 "Collapse" = "Zuklappen";
 "Connected" = "Verbunden";
 "Container width progress" = "Fortschritt der Containerbreite";
 "Content delay" = "Inhaltsverzögerung";
 "Corner" = "Ecke";
 "Could not add %@: %@" = "%@ konnte nicht hinzugefügt werden: %@";
+"Could not check" = "Prüfung fehlgeschlagen";
 "Could not register the login item. Move the app to your Applications folder and try again." = "Anmeldeobjekt konnte nicht registriert werden. Verschiebe die App in den Programme-Ordner und versuche es erneut.";
 "Could not set up opening at login: %@" = "Start bei der Anmeldung konnte nicht eingerichtet werden: %@";
 "Could not start the media adapter." = "Der Medien-Adapter konnte nicht gestartet werden.";
@@ -45,11 +48,13 @@
 "Delay before opening" = "Verzögerung vor dem Öffnen";
 "Device connections" = "Geräteverbindungen";
 "Devices" = "Geräte";
+"Download %@" = "%@ laden";
 "Download finished" = "Download abgeschlossen";
 "Downloads and screenshots" = "Downloads und Bildschirmfotos";
 "Drag files onto the notch" = "Dateien auf den Notch ziehen";
 "Drop to keep" = "Loslassen zum Behalten";
 "Dropped files are copied into a folder of Dynamic’s own, so moving or deleting the original leaves the shelf alone. AirDrop itself is handled by macOS; the notch notices what lands in your Downloads folder, announces it, and keeps a copy on the shelf." = "Abgelegte Dateien werden in einen eigenen Ordner von Dynamic kopiert – das Original zu verschieben oder zu löschen lässt die Ablage unberührt. AirDrop selbst erledigt macOS; der Notch bemerkt, was im Downloads-Ordner landet, meldet es und behält eine Kopie in der Ablage.";
+"Dynamic is open source under the MIT licence, and bundles mediaremote-adapter under BSD 3-Clause. It comes with no warranty — see the notes on playback access in Features." = "Dynamic ist Open Source unter der MIT-Lizenz und enthält mediaremote-adapter unter BSD 3-Clause. Ohne jede Gewährleistung – siehe die Hinweise zum Zugriff auf Wiedergabedaten unter Funktionen.";
 "Empty the shelf" = "Ablage leeren";
 "Enter" = "Ein";
 "Exclude from screen recordings" = "Von Bildschirmaufnahmen ausschließen";
@@ -63,6 +68,7 @@
 "Forward one frame" = "Ein Bild vor";
 "Frame" = "Bild";
 "Fully charged" = "Vollständig geladen";
+"General" = "Allgemein";
 "Gentle" = "Sanft";
 "H %.0fms·%.2f / V %.0fms·%.2f" = "H %.0fms·%.2f / V %.0fms·%.2f";
 "Haptic feedback" = "Haptisches Feedback";
@@ -75,6 +81,7 @@
 "Keep files for" = "Dateien behalten für";
 "Keep on shelf" = "In der Ablage behalten";
 "Keep the meter moving while resting" = "Anzeige auch im Ruhezustand bewegen";
+"Language" = "Sprache";
 "Left" = "Links";
 "Let go over the notch" = "Über dem Notch loslassen";
 "Like the Island" = "Wie die Island";
@@ -83,6 +90,7 @@
 "Low battery" = "Batterie schwach";
 "Match the menu bar" = "An Menüleiste anpassen";
 "Match the notch" = "An Notch anpassen";
+"Match the system" = "Wie das System";
 "Matching the notch hides the resting pill behind the camera housing exactly." = "Bei Anpassung an den Notch verschwindet die ruhende Pille exakt hinter dem Kameragehäuse.";
 "Motion" = "Bewegung";
 "Motion Lab" = "Motion-Labor";
@@ -135,6 +143,7 @@
 "Shuffle" = "Zufall";
 "Since macOS 15.4, MediaRemote is reachable only by Apple’s own processes. Dynamic reads playback information through the system perl binary, which is still entitled. If a future update closes that path, the notch says so rather than going quiet." = "Seit macOS 15.4 ist MediaRemote nur noch für Apples eigene Prozesse erreichbar. Dynamic liest die Wiedergabedaten über das perl-Binary des Systems, das noch berechtigt ist. Schließt ein künftiges Update diesen Weg, sagt der Notch das – statt einfach zu verstummen.";
 "Size" = "Größe";
+"Source and releases" = "Quellcode und Releases";
 "Spring" = "Feder";
 "Stored" = "Gespeichert";
 "System volume" = "Systemlautstärke";
@@ -150,11 +159,16 @@
 "This version of macOS blocks access to playback information." = "Diese macOS-Version blockiert den Zugriff auf Wiedergabedaten.";
 "Turn off shuffle" = "Zufall ausschalten";
 "Unknown artist" = "Unbekannter Interpret";
+"Up to date" = "Aktuell";
+"Updates are published as GitHub releases. Dynamic only tells you one exists and opens the page — it never replaces itself, which keeps an auto-updater's worth of attack surface out of the app." = "Updates erscheinen als GitHub-Releases. Dynamic meldet nur, dass eines vorliegt, und öffnet die Seite – es ersetzt sich nie selbst, was der App die Angriffsfläche eines Auto-Updaters erspart.";
 "Use the file shelf" = "Dateiablage verwenden";
 "Uses Apple’s own spring notation — duration plus bounce. Like the Island is 340ms at 0.18, Bouncy is 460ms at 0.28, Gentle is 580ms at 0.04. Closing is a little shorter with 0.12 more bounce, so it undershoots the resting size and settles back. The exact curves are in the Motion Lab tab, frame by frame." = "Verwendet Apples eigene Feder-Notation – Dauer plus Bounce. „Wie die Island“ sind 340 ms bei 0,18, „Federnd“ 460 ms bei 0,28, „Sanft“ 580 ms bei 0,04. Das Schließen ist etwas kürzer mit 0,12 mehr Bounce, unterschreitet also die Ruhegröße und schwingt zurück. Die exakten Kurven zeigt der Tab Motion-Labor, Bild für Bild.";
+"Version" = "Version";
 "Volume for this app" = "Lautstärke dieser App";
 "Waiting for Accessibility permission. Allow Dynamic in System Settings and this turns itself on — no relaunch needed." = "Wartet auf die Bedienungshilfen-Berechtigung. Erlaube Dynamic in den Systemeinstellungen, dann aktiviert es sich selbst – ohne Neustart.";
+"Website" = "Website";
 "When idle, show" = "Im Ruhezustand zeigen";
 "With this off, the notch opens on a click instead." = "Ist dies aus, öffnet sich der Notch per Klick.";
 "Working" = "Aktiv";
+"macOS reads this before the app's text is loaded, so it applies the next time Dynamic starts." = "macOS liest dies, bevor die Texte der App geladen werden – es greift daher beim nächsten Start von Dynamic.";
 "via mediaremote-adapter" = "über mediaremote-adapter";

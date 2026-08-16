@@ -3,6 +3,7 @@
    renders as readable English rather than as a missing token. */
 
 "%.2fs" = "%.2f秒";
+"%@ available" = "%@ が利用可能";
 "%lldh %lldm left" = "残り %lld 時間 %lld 分";
 "%lldm left" = "残り %lld 分";
 "1 day" = "1 日";
@@ -30,12 +31,14 @@
 "Bouncy" = "弾むように";
 "Case" = "ケース";
 "Charging" = "充電中";
+"Check for Updates" = "アップデートを確認";
 "Collapse" = "縮小";
 "Connected" = "接続済み";
 "Container width progress" = "コンテナ幅の進行";
 "Content delay" = "コンテンツの遅延";
 "Corner" = "コーナー";
 "Could not add %@: %@" = "%@ を追加できませんでした: %@";
+"Could not check" = "確認できませんでした";
 "Could not register the login item. Move the app to your Applications folder and try again." = "ログイン項目を登録できませんでした。アプリを「アプリケーション」フォルダに移してからもう一度お試しください。";
 "Could not set up opening at login: %@" = "ログイン時の起動を設定できませんでした: %@";
 "Could not start the media adapter." = "メディアアダプタを起動できませんでした。";
@@ -45,11 +48,13 @@
 "Delay before opening" = "開くまでの遅延";
 "Device connections" = "デバイスの接続";
 "Devices" = "デバイス";
+"Download %@" = "%@ をダウンロード";
 "Download finished" = "ダウンロード完了";
 "Downloads and screenshots" = "ダウンロード・スクリーンショット";
 "Drag files onto the notch" = "ノッチにファイルをドラッグしてください";
 "Drop to keep" = "放すと保管されます";
 "Dropped files are copied into a folder of Dynamic’s own, so moving or deleting the original leaves the shelf alone. AirDrop itself is handled by macOS; the notch notices what lands in your Downloads folder, announces it, and keeps a copy on the shelf." = "ドロップしたファイルは Dynamic 専用のフォルダにコピーされるため、元のファイルを移動・削除してもシェルフはそのままです。AirDrop の受信は macOS が処理し、ノッチはダウンロードフォルダに届いたファイルを知らせてシェルフにも控えを残します。";
+"Dynamic is open source under the MIT licence, and bundles mediaremote-adapter under BSD 3-Clause. It comes with no warranty — see the notes on playback access in Features." = "Dynamic は MIT ライセンスのオープンソースで、mediaremote-adapter（BSD 3-Clause）を同梱しています。いかなる保証もありません — 再生情報へのアクセスについては「機能」タブを参照してください。";
 "Empty the shelf" = "シェルフを空にする";
 "Enter" = "登場";
 "Exclude from screen recordings" = "画面収録から除外";
@@ -63,6 +68,7 @@
 "Forward one frame" = "1 フレーム進む";
 "Frame" = "フレーム";
 "Fully charged" = "充電完了";
+"General" = "一般";
 "Gentle" = "なめらかに";
 "H %.0fms·%.2f / V %.0fms·%.2f" = "H %.0fms・%.2f / V %.0fms・%.2f";
 "Haptic feedback" = "触覚フィードバック";
@@ -75,6 +81,7 @@
 "Keep files for" = "保管期間";
 "Keep on shelf" = "シェルフに保管";
 "Keep the meter moving while resting" = "待機中もメーターを動かす";
+"Language" = "言語";
 "Left" = "左";
 "Let go over the notch" = "ノッチの上で放してください";
 "Like the Island" = "アイランド基準";
@@ -83,6 +90,7 @@
 "Low battery" = "バッテリー残量が少ない";
 "Match the menu bar" = "メニューバーに合わせる";
 "Match the notch" = "ノッチに合わせる";
+"Match the system" = "システムに合わせる";
 "Matching the notch hides the resting pill behind the camera housing exactly." = "ノッチに合わせると、待機中のピルがカメラハウジングにぴったり隠れます。";
 "Motion" = "モーション";
 "Motion Lab" = "モーションラボ";
@@ -135,6 +143,7 @@
 "Shuffle" = "シャッフル";
 "Since macOS 15.4, MediaRemote is reachable only by Apple’s own processes. Dynamic reads playback information through the system perl binary, which is still entitled. If a future update closes that path, the notch says so rather than going quiet." = "macOS 15.4 以降、MediaRemote には Apple 自身のプロセスしかアクセスできません。Dynamic は、まだ権限が残っているシステムの perl バイナリ経由で再生情報を読み取ります。将来のアップデートでこの経路が塞がれた場合は、黙って止まるのではなくノッチにその旨を表示します。";
 "Size" = "サイズ";
+"Source and releases" = "ソースとリリース";
 "Spring" = "スプリング";
 "Stored" = "保管中の容量";
 "System volume" = "システム音量";
@@ -150,11 +159,16 @@
 "This version of macOS blocks access to playback information." = "この macOS バージョンでは再生情報へのアクセスがブロックされています。";
 "Turn off shuffle" = "シャッフルをオフ";
 "Unknown artist" = "アーティスト不明";
+"Up to date" = "最新です";
+"Updates are published as GitHub releases. Dynamic only tells you one exists and opens the page — it never replaces itself, which keeps an auto-updater's worth of attack surface out of the app." = "アップデートは GitHub リリースとして公開されます。Dynamic は新しいバージョンの存在を知らせてページを開くだけで、自身を置き換えることはありません。自動アップデータ相当の攻撃対象領域をアプリから外すためです。";
 "Use the file shelf" = "ファイルシェルフを使う";
 "Uses Apple’s own spring notation — duration plus bounce. Like the Island is 340ms at 0.18, Bouncy is 460ms at 0.28, Gentle is 580ms at 0.04. Closing is a little shorter with 0.12 more bounce, so it undershoots the resting size and settles back. The exact curves are in the Motion Lab tab, frame by frame." = "Apple のスプリング表記（持続時間＋バウンス）をそのまま使います。「アイランド基準」は 340ms・0.18、「弾むように」は 460ms・0.28、「なめらかに」は 580ms・0.04。閉じるときは少し短く、バウンスが 0.12 加わるため、待機サイズより縮んでから戻ります。正確なカーブは「モーションラボ」タブでフレーム単位に確認できます。";
+"Version" = "バージョン";
 "Volume for this app" = "このアプリの音量";
 "Waiting for Accessibility permission. Allow Dynamic in System Settings and this turns itself on — no relaunch needed." = "アクセシビリティ権限を待っています。システム設定で Dynamic を許可すれば、再起動なしで有効になります。";
+"Website" = "ウェブサイト";
 "When idle, show" = "待機中の表示";
 "With this off, the notch opens on a click instead." = "オフにすると、ノッチはクリックで開きます。";
 "Working" = "動作中";
+"macOS reads this before the app's text is loaded, so it applies the next time Dynamic starts." = "macOS はアプリのテキストを読み込む前にこの値を参照するため、次回 Dynamic を起動したときに反映されます。";
 "via mediaremote-adapter" = "mediaremote-adapter 経由";

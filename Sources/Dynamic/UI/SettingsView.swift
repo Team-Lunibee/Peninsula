@@ -71,6 +71,8 @@ struct SettingsView: View {
     /// Read once when the tab appears rather than on every redraw: it walks the
     /// shelf directory, and a settings form re-renders on every keystroke.
     @State private var shelfSize = "…"
+    @State private var updates = UpdateCheck()
+    @State private var language = AppLanguage.current
 
     private func refreshShelfSize() {
         let store = (NSApp.delegate as? AppDelegate)?.shelfStore
@@ -80,6 +82,8 @@ struct SettingsView: View {
 
     var body: some View {
         TabView {
+            general
+                .tabItem { Label("General", systemImage: "gearshape") }
             appearance
                 .tabItem { Label("Appearance", systemImage: "paintbrush") }
             behaviour
@@ -87,10 +91,100 @@ struct SettingsView: View {
             features
                 .onAppear(perform: refreshShelfSize)
                 .tabItem { Label("Features", systemImage: "square.grid.2x2") }
+            #if DEV_TOOLS
             MotionLabView()
                 .tabItem { Label("Motion Lab", systemImage: "waveform.path") }
+            #endif
         }
         .frame(width: 520, height: 560)
+    }
+
+    // MARK: - General
+
+    private var general: some View {
+        Form {
+            Section {
+                LabeledContent("Version") {
+                    HStack(spacing: 8) {
+                        Text(updates.installedVersion)
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
+                        updateStatus
+                    }
+                }
+
+                Button("Check for Updates") {
+                    Task { await updates.check() }
+                }
+                .disabled(updates.state == .checking)
+
+                if case .available(let version) = updates.state {
+                    Button("Download \(version)") {
+                        NSWorkspace.shared.open(UpdateCheck.releasesPage)
+                    }
+                }
+            } header: {
+                Text("Dynamic")
+            } footer: {
+                Text("Updates are published as GitHub releases. Dynamic only tells you one exists and opens the page — it never replaces itself, which keeps an auto-updater's worth of attack surface out of the app.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section {
+                Picker("Language", selection: $language) {
+                    ForEach(AppLanguage.allCases) { option in
+                        Text(option.label).tag(option)
+                    }
+                }
+                .onChange(of: language) { _, selected in
+                    AppLanguage.select(selected)
+                }
+            } footer: {
+                Text("macOS reads this before the app's text is loaded, so it applies the next time Dynamic starts.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section {
+                LabeledContent("Website") {
+                    Link("lunibee.kr", destination: UpdateCheck.website)
+                }
+                LabeledContent("Source and releases") {
+                    Link("GitHub", destination: UpdateCheck.sourcePage)
+                }
+            } footer: {
+                Text("Dynamic is open source under the MIT licence, and bundles mediaremote-adapter under BSD 3-Clause. It comes with no warranty — see the notes on playback access in Features.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .formStyle(.grouped)
+    }
+
+    @ViewBuilder
+    private var updateStatus: some View {
+        switch updates.state {
+        case .idle:
+            EmptyView()
+        case .checking:
+            ProgressView().controlSize(.small)
+        case .upToDate:
+            Label("Up to date", systemImage: "checkmark.circle.fill")
+                .labelStyle(.titleAndIcon)
+                .foregroundStyle(.secondary)
+                .font(.caption)
+        case .available(let version):
+            Label("\(version) available", systemImage: "arrow.down.circle.fill")
+                .labelStyle(.titleAndIcon)
+                .foregroundStyle(.tint)
+                .font(.caption)
+        case .failed:
+            Label("Could not check", systemImage: "exclamationmark.triangle")
+                .labelStyle(.titleAndIcon)
+                .foregroundStyle(.secondary)
+                .font(.caption)
+        }
     }
 
     // MARK: - 모양
