@@ -279,11 +279,21 @@ private struct ShelfTile: View {
                     .fill(.white.opacity(0.08))
 
                 if let thumbnail {
+                    // Fills the tile and is cropped, rather than fitted inside
+                    // it. A fitted thumbnail keeps its ratio but letterboxes:
+                    // a wide screenshot becomes a thin strip floating in a
+                    // 66pt square, and a tall page becomes a sliver. Filling
+                    // shows less of the image but shows it at a size worth
+                    // looking at, and the ratio is never distorted either way.
                     Image(nsImage: thumbnail)
                         .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .padding(4)
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 66, height: 66)
+                        .clipShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
                 } else {
+                    // Icons are drawn at their own size, not cropped — a file
+                    // type glyph filled to the edges reads as a coloured tile
+                    // with no glyph in it.
                     Image(nsImage: ThumbnailCache.shared.icon(for: url))
                         .resizable()
                         .aspectRatio(contentMode: .fit)
