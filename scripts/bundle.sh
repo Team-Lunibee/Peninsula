@@ -27,25 +27,33 @@ fi
 # built last — silently shipping the Motion Lab inside a release, or dropping it
 # from a dev build. Separate paths make the two impossible to confuse.
 #
-# The flags are a plain string, not an array. macOS ships bash 3.2, where
-# expanding an empty array under `set -u` is an unbound-variable error — which
-# is exactly what a release build produces, and only a release build, so it
-# would have gone unnoticed until the first one.
-BUILD_FLAGS=""
+# Each variant gets its own module cache as well as its own scratch path.
+#
+# Sharing one produced "_DarwinFoundation1 is defined in both <path> and <the
+# same path>" followed by a signal 11, every few builds, recoverable only by
+# deleting ModuleCache by hand. Two builds with different -Xswiftc flags write
+# PCMs for the same modules into one cache; when they disagree it is left
+# corrupt. Separate caches cannot collide.
+#
+# An array, and quoted — this repository's path contains a space, so a flat
+# string splits mid-path. The array is never empty, which is what made a string
+# tempting: bash 3.2 errors on expanding an empty one under `set -u`.
 SCRATCH="$ROOT/.build"
 if [ "${PENINSULA_RELEASE:-0}" = "1" ]; then
     SCRATCH="$ROOT/.build-release"
     echo "==> Release build — dev tools excluded"
-else
-    BUILD_FLAGS="-Xswiftc -DDEV_TOOLS"
+fi
+
+BUILD_FLAGS=(-Xswiftc -module-cache-path -Xswiftc "$SCRATCH/ModuleCache")
+if [ "${PENINSULA_RELEASE:-0}" != "1" ]; then
+    BUILD_FLAGS+=(-Xswiftc -DDEV_TOOLS)
 fi
 
 echo "==> swift build -c $CONFIG"
 cd "$ROOT"
-# Unquoted on purpose: this has to split into separate arguments, and the only
-# thing it ever holds is the literal above.
-swift build -c "$CONFIG" --scratch-path "$SCRATCH" $BUILD_FLAGS
-BINARY="$(swift build -c "$CONFIG" --scratch-path "$SCRATCH" $BUILD_FLAGS --show-bin-path)/Peninsula"
+# Ask for the path first, then build once. --show-bin-path only prints.
+BINARY="$(swift build -c "$CONFIG" --scratch-path "$SCRATCH" "${BUILD_FLAGS[@]}" --show-bin-path)/Peninsula"
+swift build -c "$CONFIG" --scratch-path "$SCRATCH" "${BUILD_FLAGS[@]}"
 
 if [ ! -f "$BINARY" ]; then
     echo "error: built binary not found at $BINARY" >&2
