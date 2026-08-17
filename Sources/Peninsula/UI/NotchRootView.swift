@@ -404,8 +404,8 @@ private struct CompactContentView: View {
                 }
             }
         case .clock:
-            TimelineView(.periodic(from: .now, by: 30)) { context in
-                Text(context.date, format: .dateTime.hour().minute())
+            Ticker(interval: 30) { date in
+                Text(date, format: .dateTime.hour().minute())
                     .font(.system(size: 10, weight: .semibold, design: .rounded))
                     .foregroundStyle(.white.opacity(0.85))
                     .monospacedDigit()
@@ -845,8 +845,10 @@ private struct CompactLyricLine: View {
     let model: NotchViewModel
 
     var body: some View {
-        TimelineView(.periodic(from: .now, by: model.media.isPlaying ? 0.25 : 3600)) { context in
-            let line = currentLine(at: context.date)
+        // Four ticks a second, for as long as music plays, in the *resting*
+        // island — so this is the one of these that is genuinely idle cost.
+        Ticker(interval: model.media.isPlaying ? 0.25 : nil) { date in
+            let line = currentLine(at: date)
 
             Text(line)
                 .font(.system(size: 11, weight: .medium))

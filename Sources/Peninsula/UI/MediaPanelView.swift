@@ -140,8 +140,8 @@ struct MediaPanelView: View {
     /// Position is extrapolated from the last sample the adapter sent, so this
     /// ticks locally at 2Hz instead of asking the media player anything.
     private func progress(_ track: NowPlaying) -> some View {
-        TimelineView(.periodic(from: .now, by: media.isPlaying ? 0.5 : 3600)) { context in
-            let elapsed = track.elapsed(at: context.date)
+        Ticker(interval: media.isPlaying ? 0.5 : nil) { date in
+            let elapsed = track.elapsed(at: date)
             let duration = track.duration ?? 0
             let remaining = max(0, duration - elapsed)
 
@@ -314,8 +314,8 @@ private struct LyricsStrip: View {
     let media: MediaEngine
 
     var body: some View {
-        TimelineView(.periodic(from: .now, by: media.isPlaying ? 0.25 : 3600)) { context in
-            let elapsed = track.elapsed(at: context.date)
+        Ticker(interval: media.isPlaying ? 0.25 : nil) { date in
+            let elapsed = track.elapsed(at: date)
             let lines = media.lyrics.lyrics?.lines ?? []
             let index = media.lyrics.lyrics?.index(at: elapsed)
 
