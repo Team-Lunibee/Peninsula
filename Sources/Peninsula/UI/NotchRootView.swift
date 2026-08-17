@@ -135,7 +135,23 @@ struct NotchRootView: View {
 
     private var rimOpacity: Double {
         switch model.geometry.style {
-        case .cutout: model.isOpen ? 0.10 : 0
+        // None, and the reason is the whole premise of this style.
+        //
+        // Here the shape is impersonating the camera housing, and a hole in the
+        // screen has no highlight around its edge. A rim turns it from "the
+        // cutout, grown" into "a black panel sitting over the cutout" — which is
+        // the one illusion the app is built on. The Dynamic Island carries no
+        // stroke either, for the same reason.
+        //
+        // It was 0.10 white, which is RGB 26 against the panel's black: present
+        // in the code and absent on screen. Removing it also takes the stroke
+        // off the frame loop on every notched Mac, and stroking means computing
+        // the outline of the whole Bézier silhouette from scratch each time.
+        case .cutout: 0
+        // Kept, because this pill is not pretending to be a hole. It admits to
+        // being a surface floating inside the menu bar, and a surface has an
+        // edge — this hairline is the only thing separating a black pill from a
+        // dark menu bar, which is the case a display without a cutout is in.
         case .floating: model.isOpen ? 0.12 : 0.08
         }
     }
