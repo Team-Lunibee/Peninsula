@@ -574,10 +574,30 @@ enum Bench {
         return (data as Data).base64EncodedString()
     }
 
+    /// CPU seconds this process has used so far, user plus system.
+    ///
+    /// Reported from inside rather than sampled with `ps`, which quantises to
+    /// whole seconds — on a run that burns forty of them, that is a percent of
+    /// noise before the machine has done anything. It also fixes the window
+    /// exactly: the count starts when the cycles do, so neither launch nor the
+    /// settling delay is charged to the transitions.
+    private static func cpuSeconds() -> Double {
+        var usage = rusage()
+        guard getrusage(RUSAGE_SELF, &usage) == 0 else { return 0 }
+        func total(_ time: timeval) -> Double {
+            Double(time.tv_sec) + Double(time.tv_usec) / 1_000_000
+        }
+        return total(usage.ru_utime) + total(usage.ru_stime)
+    }
+
     private static func run(model: NotchViewModel, cycles: Int, dwell: Double) {
         Task { @MainActor in
             try? await Task.sleep(for: .seconds(3))
             note("bench: transitions begin (\(cycles) cycles)")
+
+            let startCPU = cpuSeconds()
+            let startWall = ProcessInfo.processInfo.systemUptime
+
             for index in 0..<cycles {
                 model.expand()
                 try? await Task.sleep(for: .seconds(dwell))
@@ -585,7 +605,19 @@ enum Bench {
                 try? await Task.sleep(for: .seconds(dwell))
                 if index % 10 == 9 { note("bench: cycle \(index + 1)") }
             }
-            note("bench: transitions end")
+
+            let cpu = cpuSeconds() - startCPU
+            let wall = ProcessInfo.processInfo.systemUptime - startWall
+            note(String(
+                format: "bench: transitions end — %.2fs CPU / %.1fs wall = %.2f%%",
+                cpu, wall, wall > 0 ? cpu / wall * 100 : 0
+            ))
+
+            // So a runner can wait on the process instead of polling for a line
+            // and then guessing when it is safe to kill it.
+            if ProcessInfo.processInfo.environment["PENINSULA_BENCH_QUIT"] != nil {
+                NSApp.terminate(nil)
+            }
         }
     }
 
