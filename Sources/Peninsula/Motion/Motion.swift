@@ -55,9 +55,37 @@ enum Motion {
     }
 
     /// Honours System Settings › Accessibility › Display › Reduce Motion.
+    ///
+    /// Read once and kept current by notification, rather than asked for on
+    /// demand. This flag sits underneath nearly everything in this file — every
+    /// `timeline`, every `blurFade`, every `island` transition — and all of those
+    /// are constructed *inside view bodies*, which SwiftUI re-evaluates on every
+    /// frame of a transition. With a dozen `.transition(...)` modifiers across
+    /// the open panel, an `NSWorkspace` property read here became a couple of
+    /// thousand trips into the accessibility settings per second for the whole
+    /// length of every expansion — none of which could return a different answer
+    /// than the one before it.
+    ///
+    /// Nothing is polled: macOS posts a notification when the setting moves.
     static var prefersReducedMotion: Bool {
-        NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        // Forces the observer's one-time initialiser. After that this is a load
+        // and a branch.
+        _ = reduceMotionObserver
+        return reduceMotion
     }
+
+    private static var reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+
+    private static let reduceMotionObserver: any NSObjectProtocol = NSWorkspace.shared.notificationCenter
+        .addObserver(
+            forName: NSWorkspace.accessibilityDisplayOptionsDidChangeNotification,
+            object: nil,
+            queue: .main
+        ) { _ in
+            MainActor.assumeIsolated {
+                reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+            }
+        }
 
     /// `.snappy` is measured, not chosen.
     ///
