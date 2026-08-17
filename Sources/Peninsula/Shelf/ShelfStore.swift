@@ -33,6 +33,34 @@ final class ShelfStore {
 
     var isEmpty: Bool { items.isEmpty }
 
+    /// "7 items · 24.1 MB", formatted only when it would actually differ.
+    ///
+    /// The toolbar reads this from a view body, so a transition asks for it on
+    /// every frame — and behind it sit a `.stringsdict` plural lookup and a byte
+    /// formatter, for a line whose inputs move only when a file is added or
+    /// removed. The count and the total are cheap enough to recompute and compare;
+    /// the formatting is what is worth skipping.
+    ///
+    /// `@ObservationIgnored` is load-bearing. Without it, writing the cache from
+    /// inside a getter that a view is observing is a mutation during evaluation —
+    /// which is how a body that reads this ends up invalidating itself.
+    @ObservationIgnored
+    private var summaryCache: (count: Int, bytes: Int64, text: String)?
+
+    var summary: String {
+        let count = items.count
+        let bytes = items.reduce(Int64(0)) { $0 + $1.byteSize }
+
+        if let cached = summaryCache, cached.count == count, cached.bytes == bytes {
+            return cached.text
+        }
+
+        let size = ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
+        let text = String(localized: "\(count) items · \(size)")
+        summaryCache = (count, bytes, text)
+        return text
+    }
+
     func url(for item: ShelfItem) -> URL {
         item.url(in: directory)
     }

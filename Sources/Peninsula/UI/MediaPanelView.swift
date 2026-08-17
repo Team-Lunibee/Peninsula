@@ -59,7 +59,7 @@ struct MediaPanelView: View {
                 VStack(alignment: .leading, spacing: 1) {
                     MarqueeText(text: track.title, font: .system(size: 16, weight: .semibold))
 
-                    Text(track.artist ?? track.album ?? String(localized: "Unknown artist"))
+                    Text(track.artist ?? track.album ?? Strings.unknownArtist)
                         .font(.system(size: 13))
                         .foregroundStyle(.white.opacity(0.55))
                         .lineLimit(1)

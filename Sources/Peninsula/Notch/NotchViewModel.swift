@@ -85,13 +85,21 @@ enum NotchTab: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
-    var label: String {
-        switch self {
-        case .media: String(localized: "Now Playing")
-        case .shelf: String(localized: "Shelf")
-        case .devices: String(localized: "Devices")
-        }
-    }
+    /// Looked up once per process, not once per frame.
+    ///
+    /// `String(localized:)` is a bundle lookup, and this one is read from inside
+    /// a view body — three times over, once per visible tab — so it used to run
+    /// on every frame of every expansion. The value cannot change underneath the
+    /// table either way: `AppLanguage` writes `AppleLanguages`, and macOS reads
+    /// that before the string tables load, so a language change only takes
+    /// effect on the next launch.
+    var label: String { Self.labels[self] ?? rawValue }
+
+    private static let labels: [NotchTab: String] = [
+        .media: String(localized: "Now Playing"),
+        .shelf: String(localized: "Shelf"),
+        .devices: String(localized: "Devices"),
+    ]
 
     var symbol: String {
         switch self {
@@ -112,6 +120,32 @@ final class NotchViewModel {
     var activity: NotchActivity?
     var tab: NotchTab = .media
     var isDropTargeted = false
+
+    /// Which drop zone the drag is currently over, and where the zones are.
+    ///
+    /// Both live here rather than inside the zones because the drop is handled
+    /// once, at the panel, and the panel is the only place that knows where the
+    /// pointer is. `DropInfo` reports a location; nested `.onDrop` handlers on
+    /// the zones themselves never receive the drag at all, so they cannot light
+    /// themselves up or claim the file. The zones publish their frames here and
+    /// read the highlight back.
+    enum DropZone: Equatable {
+        case shelf
+        case airDrop
+    }
+
+    var hoveredDropZone: DropZone?
+    /// In the panel's own coordinate space, which is what `DropInfo.location`
+    /// is measured in.
+    var shelfZoneRect: CGRect = .zero
+    var airDropZoneRect: CGRect = .zero
+
+    /// AirDrop is tested first and the shelf catches everything else: the shelf
+    /// is the default, so a drop that lands in the gap between the two should
+    /// still keep the file rather than doing nothing.
+    func dropZone(at point: CGPoint) -> DropZone {
+        airDropZoneRect.contains(point) ? .airDrop : .shelf
+    }
 
     /// Signed squash impulse driving the jelly deformation. Positive stretches
     /// wide and flat; it springs back to zero on its own.

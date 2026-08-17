@@ -46,7 +46,68 @@ struct ShelfPanelView: View {
     /// side with a gulf of nothing beside them. Filling the width and aligning
     /// the contents leading keeps them where they belong; the scroll only has
     /// anywhere to go once there are enough tiles to overflow.
+
+    private static let scrollSpace = "shelf-scroll"
+
+    @State private var scrollOffset: CGFloat = 0
+    @State private var contentWidth: CGFloat = 0
+    @State private var viewportWidth: CGFloat = 0
+    /// Set by the scroll bar, consumed by the ScrollViewReader below.
+    @State private var scrollFraction: CGFloat?
+
+    /// A couple of points of slack: the offset lands on fractional values and an
+    /// exact comparison leaves the fade on at rest.
+    private var scrolledFromStart: Bool { scrollOffset > 2 }
+    private var atEnd: Bool {
+        contentWidth <= 0 || scrollOffset >= contentWidth - viewportWidth - 2
+    }
+
     private var items: some View {
+        // Fades whichever edge still has tiles behind it.
+        //
+        // The row has always scrolled, but with hidden indicators nothing said
+        // so: a tile cut off at the panel's edge reads as a rendering mistake,
+        // not as "there is more". Dragging the row would have been the obvious
+        // affordance and is taken — a drag on a tile is how a file leaves the
+        // shelf — so the edge does the telling instead.
+        GeometryReader { outer in
+            // Measured, not estimated from the item count. Counting tiles meant
+            // counting a trailing gap that is not there, which overstated the
+            // row by one gap and faded the last tile on a shelf that fitted.
+            let overflowing = contentWidth > outer.size.width + 1
+
+            scroller
+                .onChange(of: outer.size.width) { _, w in viewportWidth = w }
+                .onAppear { viewportWidth = outer.size.width }
+                .overlay(alignment: .bottom) {
+                    if overflowing {
+                        ScrollBar(
+                            offset: scrollOffset,
+                            content: contentWidth,
+                            viewport: outer.size.width,
+                            onDrag: { scrollFraction = $0 }
+                        )
+                    }
+                }
+                .mask(
+                    LinearGradient(
+                        stops: overflowing
+                            ? [
+                                .init(color: .clear, location: 0),
+                                .init(color: .white, location: scrolledFromStart ? 0.045 : 0),
+                                .init(color: .white, location: atEnd ? 1 : 0.955),
+                                .init(color: .clear, location: 1),
+                            ]
+                            : [.init(color: .white, location: 0), .init(color: .white, location: 1)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var scroller: some View {
         ScrollViewReader { proxy in
             ScrollView(.horizontal, showsIndicators: false) {
                 // Lazy, because a plain `HStack` builds every tile the shelf
@@ -70,10 +131,34 @@ struct ShelfPanelView: View {
                 .padding(.horizontal, 3)
                 .padding(.vertical, 3)
                 .frame(maxWidth: .infinity, alignment: .leading)
+                // 스크롤 위치는 콘텐츠가 컨테이너 좌표계에서 어디 있는지로 읽는다.
+                // onScrollGeometryChange 는 macOS 15 부터라 쓸 수 없다.
+                .background {
+                    GeometryReader { inner in
+                        let frame = inner.frame(in: .named(Self.scrollSpace))
+                        Color.clear
+                            .onChange(of: frame.minX) { _, x in scrollOffset = -x }
+                            .onChange(of: frame.width) { _, w in contentWidth = w }
+                            .onAppear {
+                                scrollOffset = -frame.minX
+                                contentWidth = frame.width
+                            }
+                    }
+                }
             }
+            .coordinateSpace(name: Self.scrollSpace)
             // Once it does overflow, follow the newest tile out to the right,
             // or a drop onto a full shelf lands off-screen and reads as having
             // done nothing. `items.first` is the newest — the store's order.
+            .onChange(of: scrollFraction) { _, fraction in
+                guard let fraction else { return }
+                let ordered = shelf.items.reversed().map(\.id)
+                guard !ordered.isEmpty else { return }
+                let index = Int((fraction * CGFloat(ordered.count - 1)).rounded())
+                withAnimation(.interactiveSpring(duration: 0.22)) {
+                    proxy.scrollTo(ordered[min(max(index, 0), ordered.count - 1)], anchor: .center)
+                }
+            }
             .onChange(of: shelf.items.first?.id) { _, newest in
                 guard let newest else { return }
                 withAnimation(Motion.transition(Preferences.shared.motion)) {
@@ -120,12 +205,12 @@ struct ShelfPanelView: View {
         .foregroundStyle(.white.opacity(0.85))
     }
 
-    private var summary: String {
-        let count = shelf.items.count
-        let bytes = shelf.items.reduce(Int64(0)) { $0 + $1.byteSize }
-        let size = ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
-        return String(localized: "\(count) items · \(size)")
-    }
+    /// Formatted once per shelf change rather than once per frame.
+    ///
+    /// This is a plural lookup and a byte formatter behind a computed property,
+    /// which a transition re-evaluates on every frame — for a line of text whose
+    /// two inputs only move when a file is added or removed.
+    private var summary: String { shelf.summary }
 
     private var empty: some View {
         VStack(spacing: 8) {
@@ -145,6 +230,67 @@ struct ShelfPanelView: View {
     }
 }
 
+/// A bar under the row, for pointers that cannot scroll sideways.
+///
+/// A trackpad scrolls this row with two fingers and a mouse with a wheel
+/// generally cannot, so without this the tiles past the seventh are reachable
+/// on some hardware and not others. Dragging the tiles themselves was not
+/// available: a drag on a tile is how a file leaves the shelf.
+private struct ScrollBar: View {
+    let offset: CGFloat
+    let content: CGFloat
+    let viewport: CGFloat
+    let onDrag: (CGFloat) -> Void
+
+    @State private var isHovering = false
+
+    var body: some View {
+        GeometryReader { proxy in
+            let track = proxy.size.width
+            let visible = content > 0 ? min(1, viewport / content) : 1
+            let knob = max(28, track * visible)
+            let travel = max(0, track - knob)
+            let progress = content > viewport ? min(1, max(0, offset / (content - viewport))) : 0
+
+            Capsule()
+                .fill(.white.opacity(isHovering ? 0.28 : 0.16))
+                .frame(width: knob, height: 4)
+                .offset(x: travel * progress)
+                .gesture(
+                    DragGesture(minimumDistance: 0)
+                        .onChanged { value in
+                            // The knob's own centre, so the row follows the
+                            // pointer rather than jumping by the grab offset.
+                            let x = travel * progress + value.translation.width
+                            onDrag(travel > 0 ? min(1, max(0, x / travel)) : 0)
+                        }
+                )
+        }
+        .frame(height: 4)
+        .padding(.horizontal, 10)
+        .padding(.bottom, 1)
+        .onHover { isHovering = $0 }
+        // Fades in with the pointer: an always-visible bar under a row of
+        // thumbnails is another line competing with the labels.
+        .opacity(isHovering ? 1 : 0.55)
+        .animation(.easeOut(duration: 0.18), value: isHovering)
+    }
+}
+
+private extension View {
+    /// Publishes this view's frame in the panel's coordinate space.
+    func reportingFrame(_ report: @escaping (CGRect) -> Void) -> some View {
+        background {
+            GeometryReader { proxy in
+                let frame = proxy.frame(in: .named(NotchRootView.dropSpace))
+                Color.clear
+                    .onAppear { report(frame) }
+                    .onChange(of: frame) { _, new in report(new) }
+            }
+        }
+    }
+}
+
 // MARK: - Drop zones
 
 /// What the panel becomes while a drag is in flight.
@@ -158,9 +304,6 @@ struct ShelfPanelView: View {
 private struct DropZonesView: View {
     let model: NotchViewModel
 
-    @State private var airDropTargeted = false
-    @State private var shelfTargeted = false
-
     private static let gap: CGFloat = 12
 
     var body: some View {
@@ -168,29 +311,29 @@ private struct DropZonesView: View {
             let unit = (proxy.size.width - Self.gap) / 4
 
             HStack(spacing: Self.gap) {
+                // Shelf on the left, AirDrop on the right. The shelf is where
+                // most drops are going, and a drag arrives from below and to
+                // the left far more often than from the right — so the default
+                // destination sits where the pointer already is.
+                zone(
+                    symbol: "tray.and.arrow.down.fill",
+                    title: Strings.keepOnShelf,
+                    subtitle: String(localized: "For \(Preferences.shared.shelfExpiryDays) days"),
+                    tint: .green,
+                    isTargeted: model.hoveredDropZone == .shelf
+                )
+                .frame(maxWidth: .infinity)
+                .reportingFrame { model.shelfZoneRect = $0 }
+
                 zone(
                     symbol: "shareplay",
                     title: "AirDrop",
-                    subtitle: String(localized: "Send straight away"),
+                    subtitle: Strings.sendStraightAway,
                     tint: .cyan,
-                    isTargeted: airDropTargeted
+                    isTargeted: model.hoveredDropZone == .airDrop
                 )
                 .frame(width: max(unit, 96))
-                .onDrop(of: [.fileURL], isTargeted: $airDropTargeted) { providers in
-                    receive(providers) { model.onAirDropFiles?($0) }
-                }
-
-                zone(
-                    symbol: "tray.and.arrow.down.fill",
-                    title: String(localized: "Keep on shelf"),
-                    subtitle: String(localized: "For \(Preferences.shared.shelfExpiryDays) days"),
-                    tint: .green,
-                    isTargeted: shelfTargeted
-                )
-                .frame(maxWidth: .infinity)
-                .onDrop(of: [.fileURL], isTargeted: $shelfTargeted) { providers in
-                    receive(providers) { model.onDrop?($0) }
-                }
+                .reportingFrame { model.airDropZoneRect = $0 }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -241,22 +384,12 @@ private struct DropZonesView: View {
             }
     }
 
-    private func receive(
-        _ providers: [NSItemProvider],
-        deliver: @escaping ([URL]) -> Void
-    ) -> Bool {
-        Task { @MainActor in
-            var urls: [URL] = []
-            for provider in providers {
-                if let url = await provider.fileURL() {
-                    urls.append(url)
-                }
-            }
-            guard !urls.isEmpty else { return }
-            deliver(urls)
-        }
-        return true
-    }
+    /// The zones no longer receive drops themselves.
+    ///
+    /// A nested `.onDrop` inside the panel's own never gets the drag, so a zone
+    /// could neither claim the file nor light up. Both now come from
+    /// `PanelDrop`, which is told the pointer's position and compares it against
+    /// the frames reported above.
 }
 
 // MARK: - Tile
@@ -271,6 +404,21 @@ private struct ShelfTile: View {
     @State private var isPressingRemove = false
 
     private var url: URL { model.shelf.url(for: item) }
+
+    /// A directory, but not a package.
+    ///
+    /// Packages are directories too, and must not be caught here: a `.key` or a
+    /// `.numbers` previews properly, and "opening" an `.app` would launch it —
+    /// from a double-click that the rest of the shelf treats as "show me this".
+    ///
+    /// Read from the filesystem rather than from the stored name. A folder has
+    /// no extension to recognise it by, and `url.hasDirectoryPath` only reports
+    /// the trailing-slash flag the URL was built with, which is false for every
+    /// item here.
+    private var isFolder: Bool {
+        let values = try? url.resourceValues(forKeys: [.isDirectoryKey, .isPackageKey])
+        return values?.isDirectory == true && values?.isPackage != true
+    }
 
     var body: some View {
         VStack(spacing: 7) {
@@ -294,7 +442,7 @@ private struct ShelfTile: View {
                     // Icons are drawn at their own size, not cropped — a file
                     // type glyph filled to the edges reads as a coloured tile
                     // with no glyph in it.
-                    Image(nsImage: ThumbnailCache.shared.icon(for: url))
+                    Image(nsImage: ThumbnailCache.shared.icon(for: item.id, url: url))
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .padding(10)
@@ -334,7 +482,12 @@ private struct ShelfTile: View {
         .animation(Motion.content(Preferences.shared.motion), value: isHovering)
         .onHover { isHovering = $0 }
         .onTapGesture(count: 2) {
-            QuickLook.present([url])
+            // A folder opens in Finder; everything else previews.
+            //
+            // Quick Look renders a folder as its own icon blown up to full
+            // screen, which is the one thing about a folder nobody needs to
+            // look at — what someone wants from a folder is to be inside it.
+            isFolder ? model.shelf.open(item) : QuickLook.present([url])
         }
         .onDrag {
             Haptics.tap()

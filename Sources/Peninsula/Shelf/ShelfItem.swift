@@ -37,14 +37,30 @@ final class ThumbnailCache {
     private var cache: [UUID: NSImage] = [:]
     private var order: [UUID] = []
     private var inFlight: Set<UUID> = []
+    private var icons: [UUID: NSImage] = [:]
 
     /// The shelf itself has no hard limit, so neither would this.
     private static let limit = 120
 
     func cached(_ id: UUID) -> NSImage? { cache[id] }
 
-    func icon(for url: URL) -> NSImage {
-        NSWorkspace.shared.icon(forFile: url.path)
+    /// The placeholder a tile shows until its thumbnail arrives.
+    ///
+    /// Cached per item rather than fetched per draw. `NSWorkspace.icon(forFile:)`
+    /// is a round trip to IconServices, and the tile that calls it re-evaluates
+    /// its body on every hover, every scroll frame and every shelf change — so a
+    /// shelf of files QuickLook cannot thumbnail was asking the system for the
+    /// same icons over and over for as long as the panel stayed open.
+    ///
+    /// Keyed by item, not by file extension, because an icon is not a function
+    /// of the extension: an app carries its own, and so does any file with a
+    /// custom icon resource. Sharing the thumbnail cache's key also means
+    /// `forget(_:)` already clears both.
+    func icon(for id: UUID, url: URL) -> NSImage {
+        if let existing = icons[id] { return existing }
+        let icon = NSWorkspace.shared.icon(forFile: url.path)
+        icons[id] = icon
+        return icon
     }
 
     func thumbnail(for item: ShelfItem, url: URL, size: CGSize) async -> NSImage? {
@@ -78,6 +94,7 @@ final class ThumbnailCache {
 
     func forget(_ id: UUID) {
         cache.removeValue(forKey: id)
+        icons.removeValue(forKey: id)
         order.removeAll { $0 == id }
     }
 }

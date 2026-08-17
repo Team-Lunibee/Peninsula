@@ -32,7 +32,6 @@ struct NotchRootView: View {
     let model: NotchViewModel
 
     @Namespace private var morph
-    @State private var isDropTargeted = false
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -121,14 +120,18 @@ struct NotchRootView: View {
                 .stroke(Color.white.opacity(rimOpacity), lineWidth: rimOpacity > 0 ? 0.5 : 0)
                 .modifier(sizing)
         }
-        .onDrop(of: [.fileURL], isTargeted: $isDropTargeted) { providers in
-            handleDrop(providers)
-        }
-        .onChange(of: isDropTargeted) { _, targeted in
-            model.isDropTargeted = targeted
-            if targeted { model.beginDropTargeting() }
-        }
+        // A delegate, not `onDrop(of:isTargeted:)`.
+        //
+        // One handler receives every drop — nested handlers on the zones never
+        // get the drag — so it has to know *where* the file was let go, and only
+        // a `DropDelegate` is told. `DropInfo.location` arrives in this view's
+        // coordinate space, which is why the zones publish their frames in the
+        // same one.
+        .coordinateSpace(name: Self.dropSpace)
+        .onDrop(of: [.fileURL], delegate: PanelDrop(model: model, handle: handleDrop))
     }
+
+    static let dropSpace = "notch-panel"
 
     private var rimOpacity: Double {
         switch model.geometry.style {
@@ -144,8 +147,12 @@ struct NotchRootView: View {
         }
     }
 
+    /// The open radius comes from `NotchGeometry`, which derives the window's
+    /// padding from it. A literal here is how the window silently stops leaving
+    /// enough room the next time this number is tuned — which is the bug the
+    /// derived padding was added to fix in the first place.
     private var shadowRadius: CGFloat {
-        model.isOpen ? 18 : 10
+        model.isOpen ? NotchGeometry.shadowRadiusOpen : 10
     }
 
     /// Content is laid out once, at the size of the state it belongs to, and
@@ -225,8 +232,11 @@ struct NotchRootView: View {
             ))
     }
 
-    private func handleDrop(_ providers: [NSItemProvider]) -> Bool {
-        guard Preferences.shared.shelfEnabled else { return false }
+    private func handleDrop(
+        _ providers: [NSItemProvider],
+        zone: NotchViewModel.DropZone
+    ) {
+        guard Preferences.shared.shelfEnabled else { return }
 
         Task { @MainActor in
             var urls: [URL] = []
@@ -235,9 +245,67 @@ struct NotchRootView: View {
                     urls.append(url)
                 }
             }
-            guard !urls.isEmpty else { return }
-            model.onDrop?(urls)
+
+            if !urls.isEmpty {
+                switch zone {
+                case .airDrop: model.onAirDropFiles?(urls)
+                case .shelf: model.onDrop?(urls)
+                }
+            }
+
+            // Always, including the empty case — a drop that yields no file URL
+            // used to return early and leave the zones up for good.
+            model.endDropTargeting()
         }
+    }
+}
+
+/// Receives every drop on the panel and routes it by where it landed.
+///
+/// The zones cannot do this themselves: `.onDrop` nested inside this one never
+/// receives the drag, so a zone can neither light itself up nor claim the file.
+/// Both now come from the pointer's position, tested against the frames the
+/// zones publish.
+private struct PanelDrop: DropDelegate {
+    let model: NotchViewModel
+    let handle: ([NSItemProvider], NotchViewModel.DropZone) -> Void
+
+    func validateDrop(info: DropInfo) -> Bool {
+        Preferences.shared.shelfEnabled && info.hasItemsConforming(to: [.fileURL])
+    }
+
+    func dropEntered(info: DropInfo) {
+        model.isDropTargeted = true
+        model.beginDropTargeting()
+        model.hoveredDropZone = model.dropZone(at: info.location)
+    }
+
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        let zone = model.dropZone(at: info.location)
+        // Assigned only on a change: this fires continuously while the pointer
+        // moves, and writing an unchanged value still invalidates every view
+        // observing it.
+        if model.hoveredDropZone != zone {
+            withAnimation(Motion.content(Preferences.shared.motion)) {
+                model.hoveredDropZone = zone
+            }
+        }
+        return DropProposal(operation: .copy)
+    }
+
+    func dropExited(info: DropInfo) {
+        // The highlight goes, but the zones stay: the drag monitor owns whether
+        // the panel is open, and tearing the zones down here makes them flicker
+        // whenever the pointer crosses the panel's own edge.
+        withAnimation(Motion.content(Preferences.shared.motion)) {
+            model.hoveredDropZone = nil
+        }
+    }
+
+    func performDrop(info: DropInfo) -> Bool {
+        let zone = model.dropZone(at: info.location)
+        model.hoveredDropZone = nil
+        handle(info.itemProviders(for: [.fileURL]), zone)
         return true
     }
 }
@@ -498,9 +566,9 @@ private struct PeekContentView: View {
 
     private var title: String {
         switch model.activity {
-        case .trackChanged: model.media.nowPlaying?.title ?? String(localized: "Now Playing")
+        case .trackChanged: model.media.nowPlaying?.title ?? Strings.nowPlaying
         case .filesAdded(let count): String(localized: "\(count) kept on the shelf")
-        case .dropTarget: String(localized: "Drop to keep")
+        case .dropTarget: Strings.dropToKeep
         case .info(let info): info.title
         case .level, nil: ""
         }
@@ -509,8 +577,8 @@ private struct PeekContentView: View {
     private var subtitle: String? {
         switch model.activity {
         case .trackChanged: model.media.nowPlaying?.artist
-        case .filesAdded: String(localized: "Open the notch to get them back")
-        case .dropTarget: String(localized: "Let go over the notch")
+        case .filesAdded: Strings.getThemBack
+        case .dropTarget: Strings.letGo
         case .info(let info): info.subtitle
         case .level, nil: nil
         }
@@ -692,11 +760,11 @@ private struct ExpandedContentView: View {
     }
 
     private var lyricsHelp: String {
-        if model.media.lyrics.isLoading { return String(localized: "Looking for lyrics…") }
+        if model.media.lyrics.isLoading { return Strings.lookingForLyrics }
         if model.media.lyrics.lyrics?.isSynced == true {
-            return Preferences.shared.showLyrics ? String(localized: "Hide lyrics") : String(localized: "Show lyrics")
+            return Preferences.shared.showLyrics ? Strings.hideLyrics : Strings.showLyrics
         }
-        return String(localized: "No synced lyrics found for this track")
+        return Strings.noSyncedLyrics
     }
 
     private func isAvailable(_ tab: NotchTab) -> Bool {
@@ -731,11 +799,6 @@ private struct ExpandedContentView: View {
                     Text("\(model.shelf.items.count)")
                         .font(.system(size: 9.5, weight: .bold))
                         .monospacedDigit()
-                        .contentTransition(.numericText())
-                        .animation(
-                            Motion.content(Preferences.shared.motion),
-                            value: model.shelf.items.count
-                        )
                         .contentTransition(.numericText())
                         .animation(
                             Motion.content(Preferences.shared.motion),
