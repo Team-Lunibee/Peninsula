@@ -33,6 +33,7 @@ enum Bench {
 
         switch mode {
         case "transitions": run(model: model, cycles: cycles, dwell: 0.9)
+        case "idle": runIdle()
         case "tracks": runTrackStorm(model: model)
         case "settings": runSettingsCycle()
         case "hud": runHUDProbe(model: model)
@@ -588,6 +589,64 @@ enum Bench {
             Double(time.tv_sec) + Double(time.tv_usec) / 1_000_000
         }
         return total(usage.ru_utime) + total(usage.ru_stime)
+    }
+
+    /// Physical footprint, the number Activity Monitor calls Memory.
+    private static func footprintMB() -> Double {
+        var info = task_vm_info_data_t()
+        var count = mach_msg_type_number_t(MemoryLayout<task_vm_info_data_t>.size / MemoryLayout<natural_t>.size)
+        let result = withUnsafeMutablePointer(to: &info) {
+            $0.withMemoryRebound(to: integer_t.self, capacity: Int(count)) {
+                task_info(mach_task_self_, task_flavor_t(TASK_VM_INFO), $0, &count)
+            }
+        }
+        guard result == KERN_SUCCESS else { return 0 }
+        return Double(info.phys_footprint) / 1_048_576
+    }
+
+    /// Sits there doing nothing, which for a menu-bar app is the whole job.
+    ///
+    /// Long enough that the numbers are not dominated by whatever the app was
+    /// still finishing at launch: the adapter connects a second or two in, and
+    /// the first Bluetooth and display queries land around the same time.
+    private static func runIdle() {
+        let seconds = ProcessInfo.processInfo.environment["PENINSULA_BENCH_SECONDS"]
+            .flatMap(Double.init) ?? 100
+
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(15))
+            note("bench: idle begin")
+
+            let startCPU = cpuSeconds()
+            let startWall = ProcessInfo.processInfo.systemUptime
+            let startMemory = footprintMB()
+
+            try? await Task.sleep(for: .seconds(seconds))
+
+            let cpu = cpuSeconds() - startCPU
+            let wall = ProcessInfo.processInfo.systemUptime - startWall
+            note(String(
+                format: "bench: idle end — %.2fs CPU / %.1fs wall = %.2f%%, memory %.1f -> %.1f MB, threads %d",
+                cpu, wall, wall > 0 ? cpu / wall * 100 : 0,
+                startMemory, footprintMB(), threadCount()
+            ))
+
+            if ProcessInfo.processInfo.environment["PENINSULA_BENCH_QUIT"] != nil {
+                NSApp.terminate(nil)
+            }
+        }
+    }
+
+    private static func threadCount() -> Int {
+        var threads: thread_act_array_t?
+        var count: mach_msg_type_number_t = 0
+        guard task_threads(mach_task_self_, &threads, &count) == KERN_SUCCESS, let threads else { return 0 }
+        vm_deallocate(
+            mach_task_self_,
+            vm_address_t(UInt(bitPattern: threads)),
+            vm_size_t(Int(count) * MemoryLayout<thread_t>.size)
+        )
+        return Int(count)
     }
 
     private static func run(model: NotchViewModel, cycles: Int, dwell: Double) {
